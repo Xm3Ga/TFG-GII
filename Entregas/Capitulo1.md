@@ -54,9 +54,7 @@ El despliegue de sistemas de inteligencia artificial en entornos empresariales h
 El informe OWASP Top 10 para Aplicaciones de LLM, en su versión 2025, identifica los diez riesgos más críticos para este tipo de sistemas. Entre ellos, tres resultan directamente relevantes para el presente trabajo:
 
 - **LLM01 — Inyección de *prompts***: manipulación de modelos de lenguaje mediante entradas diseñadas para alterar su comportamiento, eludir restricciones o ejecutar acciones no previstas (OWASP, 2025). Es uno de los ataques más documentados en los últimos años. Perez y Ribeiro (2022) demostraron que incluso modelos con instrucciones de seguridad pueden ser manipulados mediante técnicas de inyección directa e indirecta. Greshake et al. (2023) extendieron este análisis a aplicaciones integradas con LLMs, mostrando cómo las inyecciones indirectas a través de fuentes externas pueden comprometer sistemas reales.
-
 - **LLM02 — Divulgación de información sensible**: exposición no autorizada de datos personales, credenciales o información confidencial a través de las respuestas generadas por el modelo (OWASP, 2025). Esto incluye la filtración de información de identificación personal (PII), un aspecto especialmente crítico en el contexto del Reglamento General de Protección de Datos (RGPD) europeo.
-
 - **LLM06 — Agencia excesiva**: concesión de niveles de autonomía desproporcionados a agentes de IA, sin los controles adecuados sobre las acciones que pueden ejecutar (OWASP, 2025). Este riesgo se materializa cuando un agente tiene acceso a herramientas, APIs o recursos que exceden lo necesario para su función.
 
 ### Guardarraíles para agentes de IA
@@ -129,15 +127,17 @@ Las plataformas de seguridad especializadas (Lakera Guard, Protect AI, Arthur AI
 
 Las herramientas de código abierto (NeMo Guardrails, Guardrails AI) ofrecen flexibilidad, pero requieren conocimientos técnicos avanzados para su configuración y no proporcionan una experiencia guiada que facilite la adopción.
 
-| Característica | Bedrock Guardrails | Azure Content Safety | NeMo Guardrails | Lakera Guard | Protect AI |
-|---|:---:|:---:|:---:|:---:|:---:|
-| Agnóstico de proveedor | No | No | Parcial | Parcial | Parcial |
-| Guardarraíles de contenido | Sí | Sí | Sí | Parcial | No |
-| Detección de PII | Sí | No | No | No | No |
-| Bloqueo de inyección de *prompts* | Sí | No | Parcial | Sí | No |
-| Gestión de privilegios | No | No | No | No | No |
-| Definición de autonomía | No | No | No | No | No |
-| Interfaz conversacional guiada | No | No | No | No | No |
+
+| Característica                    | Bedrock Guardrails | Azure Content Safety | NeMo Guardrails | Lakera Guard | Protect AI |
+| --------------------------------- | ------------------ | -------------------- | --------------- | ------------ | ---------- |
+| Agnóstico de proveedor            | No                 | No                   | Parcial         | Parcial      | Parcial    |
+| Guardarraíles de contenido        | Sí                 | Sí                   | Sí              | Parcial      | No         |
+| Detección de PII                  | Sí                 | No                   | No              | No           | No         |
+| Bloqueo de inyección de *prompts* | Sí                 | No                   | Parcial         | Sí           | No         |
+| Gestión de privilegios            | No                 | No                   | No              | No           | No         |
+| Definición de autonomía           | No                 | No                   | No              | No           | No         |
+| Interfaz conversacional guiada    | No                 | No                   | No              | No           | No         |
+
 
 *Tabla 1. Análisis comparativo de soluciones existentes. Elaboración propia.*
 
@@ -207,46 +207,44 @@ La metodología estructura el desarrollo en cuatro fases:
 
 # Referencias bibliográficas
 
-Amazon Web Services. (2024). *Amazon Bedrock Guardrails*. https://aws.amazon.com/bedrock/guardrails/
+Amazon Web Services. (2024). *Amazon Bedrock Guardrails*. [https://aws.amazon.com/bedrock/guardrails/](https://aws.amazon.com/bedrock/guardrails/)
 
-Arthur AI. (2024). *Arthur AI: AI Performance Monitoring*. https://www.arthur.ai/
+Arthur AI. (2024). *Arthur AI: AI Performance Monitoring*. [https://www.arthur.ai/](https://www.arthur.ai/)
 
-Calypso AI. (2024). *Calypso AI: AI Security and Testing Platform*. https://calypsoai.com/
+Calypso AI. (2024). *Calypso AI: AI Security and Testing Platform*. [https://calypsoai.com/](https://calypsoai.com/)
 
-Gartner. (2024). *Top Strategic Technology Trends 2025*. https://www.gartner.com/en/articles/gartner-top-10-strategic-technology-trends-2025
+Google Cloud. (2024). *Vertex AI: Generative AI on Google Cloud*. [https://cloud.google.com/vertex-ai](https://cloud.google.com/vertex-ai)
 
-Google Cloud. (2024). *Vertex AI: Generative AI on Google Cloud*. https://cloud.google.com/vertex-ai
+Greshake, K., Abdelnabi, S., Mishra, S., Endres, C., Holz, T., & Fritz, M. (2023). Not what you've signed up for: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection. *Proceedings of the 16th ACM Workshop on Artificial Intelligence and Security*, 79-90. [https://doi.org/10.1145/3605764.3623985](https://doi.org/10.1145/3605764.3623985)
 
-Greshake, K., Abdelnabi, S., Mishra, S., Endres, C., Holz, T., & Fritz, M. (2023). Not what you've signed up for: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection. *Proceedings of the 16th ACM Workshop on Artificial Intelligence and Security*, 79-90. https://doi.org/10.1145/3605764.3623985
+Guardrails AI. (2024). *Guardrails AI: Input/Output Guards for LLMs*. [https://www.guardrailsai.com/](https://www.guardrailsai.com/)
 
-Guardrails AI. (2024). *Guardrails AI: Input/Output Guards for LLMs*. https://www.guardrailsai.com/
-
-ISO. (2023). *ISO/IEC 42001:2023 — Information technology — Artificial intelligence — Management system*. International Organization for Standardization. https://www.iso.org/standard/81230.html
+ISO. (2023). *ISO/IEC 42001:2023 — Information technology — Artificial intelligence — Management system*. International Organization for Standardization. [https://www.iso.org/standard/81230.html](https://www.iso.org/standard/81230.html)
 
 Jacobson, I., Booch, G., & Rumbaugh, J. (1999). *The Unified Software Development Process*. Addison-Wesley.
 
-Lakera. (2024). *Lakera Guard: AI Security for LLM Applications*. https://www.lakera.ai/
+Lakera. (2024). *Lakera Guard: AI Security for LLM Applications*. [https://www.lakera.ai/](https://www.lakera.ai/)
 
-McKinsey & Company. (2024). *The state of AI in early 2024: Gen AI adoption spikes and starts to generate value*. https://www.mckinsey.com/capabilities/quantumblack/our-insights/the-state-of-ai
+McKinsey & Company. (2024). *The state of AI in early 2024: Gen AI adoption spikes and starts to generate value*. [https://www.mckinsey.com/capabilities/quantumblack/our-insights/the-state-of-ai](https://www.mckinsey.com/capabilities/quantumblack/our-insights/the-state-of-ai)
 
-Microsoft. (2024). *Azure AI Content Safety*. https://azure.microsoft.com/en-us/products/ai-services/ai-content-safety
+Microsoft. (2024). *Azure AI Content Safety*. [https://azure.microsoft.com/en-us/products/ai-services/ai-content-safety](https://azure.microsoft.com/en-us/products/ai-services/ai-content-safety)
 
-NIST. (2023). *Artificial Intelligence Risk Management Framework (AI RMF 1.0)* (NIST AI 100-1). National Institute of Standards and Technology. https://doi.org/10.6028/NIST.AI.100-1
+NIST. (2023). *Artificial Intelligence Risk Management Framework (AI RMF 1.0)* (NIST AI 100-1). National Institute of Standards and Technology. [https://doi.org/10.6028/NIST.AI.100-1](https://doi.org/10.6028/NIST.AI.100-1)
 
-NVIDIA. (2024). *NeMo Guardrails: Open-Source Toolkit for LLM Safety*. https://github.com/NVIDIA/NeMo-Guardrails
+NVIDIA. (2024). *NeMo Guardrails: Open-Source Toolkit for LLM Safety*. [https://github.com/NVIDIA/NeMo-Guardrails](https://github.com/NVIDIA/NeMo-Guardrails)
 
-OWASP. (2025). *OWASP Top 10 for Large Language Model Applications 2025*. OWASP Foundation. https://genai.owasp.org/llm-top-10/
+OWASP. (2025). *OWASP Top 10 for Large Language Model Applications 2025*. OWASP Foundation. [https://genai.owasp.org/llm-top-10/](https://genai.owasp.org/llm-top-10/)
 
-Parlamento Europeo. (2024). *Reglamento (UE) 2024/1689 del Parlamento Europeo y del Consejo por el que se establecen normas armonizadas en materia de inteligencia artificial (Reglamento de Inteligencia Artificial)*. Diario Oficial de la Unión Europea. https://eur-lex.europa.eu/eli/reg/2024/1689/oj
+Parlamento Europeo. (2024). *Reglamento (UE) 2024/1689 del Parlamento Europeo y del Consejo por el que se establecen normas armonizadas en materia de inteligencia artificial (Reglamento de Inteligencia Artificial)*. Diario Oficial de la Unión Europea. [https://eur-lex.europa.eu/eli/reg/2024/1689/oj](https://eur-lex.europa.eu/eli/reg/2024/1689/oj)
 
-Perez, F., & Ribeiro, I. (2022). Ignore This Title and HackAPrompt: Evaluating and Eliciting Prompt Injection Attacks in LLMs. *arXiv preprint arXiv:2211.09527*. https://arxiv.org/abs/2211.09527
+Perez, F., & Ribeiro, I. (2022). Ignore This Title and HackAPrompt: Evaluating and Eliciting Prompt Injection Attacks in LLMs. *arXiv preprint arXiv:2211.09527*. [https://arxiv.org/abs/2211.09527](https://arxiv.org/abs/2211.09527)
 
-Protect AI. (2024). *Protect AI: AI/ML Security Platform*. https://protectai.com/
+Protect AI. (2024). *Protect AI: AI/ML Security Platform*. [https://protectai.com/](https://protectai.com/)
 
 Russell, S., & Norvig, P. (2021). *Artificial intelligence: A modern approach* (4th ed.). Pearson.
 
-Saltzer, J. H., & Schroeder, M. D. (1975). The protection of information in computer systems. *Proceedings of the IEEE, 63*(9), 1278-1308. https://doi.org/10.1109/PROC.1975.9939
+Saltzer, J. H., & Schroeder, M. D. (1975). The protection of information in computer systems. *Proceedings of the IEEE, 63*(9), 1278-1308. [https://doi.org/10.1109/PROC.1975.9939](https://doi.org/10.1109/PROC.1975.9939)
 
 Shneiderman, B. (2022). *Human-Centered AI*. Oxford University Press.
 
-Wang, L., Ma, C., Feng, X., Zhang, Z., Yang, H., Zhang, J., Chen, Z., Tang, J., Chen, X., Lin, Y., Zhao, W. X., Wei, Z., & Wen, J. (2024). A Survey on Large Language Model based Autonomous Agents. *Frontiers of Computer Science, 18*(6), 186345. https://doi.org/10.1007/s11704-024-40231-1
+Wang, L., Ma, C., Feng, X., Zhang, Z., Yang, H., Zhang, J., Chen, Z., Tang, J., Chen, X., Lin, Y., Zhao, W. X., Wei, Z., & Wen, J. (2024). A Survey on Large Language Model based Autonomous Agents. *Frontiers of Computer Science, 18*(6), 186345. [https://doi.org/10.1007/s11704-024-40231-1](https://doi.org/10.1007/s11704-024-40231-1)
