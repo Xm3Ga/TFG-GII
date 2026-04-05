@@ -1,0 +1,15 @@
+@startuml
+
+left to right direction
+
+actor "Kiwi TCMS" as Kiwi
+
+rectangle "Testing" {
+  usecase "Recibir escenarios\nde prueba" as UC1
+  usecase "Almacenar escenarios\nde prueba" as UC2
+}
+
+Kiwi --> UC1
+Kiwi --> UC2
+
+@enduml

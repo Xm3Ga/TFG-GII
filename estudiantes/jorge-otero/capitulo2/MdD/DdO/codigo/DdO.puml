@@ -1,0 +1,72 @@
+@startuml DdO
+
+left to right direction
+hide circle
+hide empty members
+
+skinparam linetype polyline
+skinparam packageStyle rectangle
+skinparam nodesep 80
+skinparam ranksep 80
+
+package "Actores" {
+    object cliente1 {
+        email = "cliente@empresa.com"
+    }
+
+    object tecnico1 {
+        responsableDe = "Madrid"
+    }
+}
+
+package "Comunicacion" {
+    object correo1 {
+        asunto = "Consulta PET1234"
+        cuerpo = "Buenos dias, consulto por mi peticion"
+    }
+
+    object respuesta1 {
+        asunto = "RE: Consulta PET1234"
+        cuerpo = "Su peticion se encuentra en estado Pendiente de Construccion"
+    }
+}
+
+package "Procesamiento" {
+    object intencion1 {
+        tipo = "Consulta"
+    }
+
+    object peticion1 {
+        numero = "PET1234"
+    }
+}
+
+package "Sistemas Internos" {
+    object appPetter {
+        nombre = "Petter"
+        numero = "PET1234"
+        estado = "Pendiente de Construccion"
+    }
+}
+
+cliente1 -[hidden]-> correo1
+correo1 -[hidden]-> respuesta1
+correo1 -[hidden]-> intencion1
+intencion1 -[hidden]-> peticion1
+peticion1 -[hidden]-> appPetter
+
+cliente1 --> correo1 : envia
+tecnico1 --> correo1 : analiza
+
+correo1 *--> intencion1 : contiene
+correo1 *--> peticion1 : contiene
+
+tecnico1 --> peticion1 : interpreta
+tecnico1 ..> appPetter : consulta
+
+tecnico1 --> respuesta1 : genera
+respuesta1 --> cliente1 : recibe
+
+correo1 --> respuesta1 : respondeA
+
+@enduml

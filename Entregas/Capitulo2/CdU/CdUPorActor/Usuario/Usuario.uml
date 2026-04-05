@@ -1,0 +1,44 @@
+@startuml
+left to right direction
+
+actor "Usuario" as USR
+
+rectangle "Misiones de Seguridad" {
+
+    rectangle "Soporte" {
+        usecase "Conectar proveedor cloud" as CdU01
+        usecase "Descubrir agentes" as CdU02
+    }
+
+    rectangle "Guardarraíles" {
+        usecase "Configurar guardarraíl\nde contenido" as CdU03
+        usecase "Configurar protección\nanti-jailbreak" as CdU04
+        usecase "Configurar detección\nde PII" as CdU05
+        usecase "Configurar bloqueo\nde temas" as CdU06
+        usecase "Aplicar guardarraíl\na agentes" as CdU07
+    }
+
+    rectangle "Mínimo Privilegio" {
+        usecase "Analizar privilegios\nde agentes" as CdU08
+        usecase "Aplicar reducción\nde privilegios" as CdU09
+    }
+
+    rectangle "Autonomía" {
+        usecase "Definir niveles\nde autonomía" as CdU10
+        usecase "Configurar supervisión\nhumana" as CdU11
+    }
+}
+
+USR -- CdU01
+USR -- CdU02
+USR -- CdU03
+USR -- CdU04
+USR -- CdU05
+USR -- CdU06
+USR -- CdU07
+USR -- CdU08
+USR -- CdU09
+USR -- CdU10
+USR -- CdU11
+
+@enduml

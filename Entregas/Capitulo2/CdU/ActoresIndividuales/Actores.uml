@@ -1,0 +1,8 @@
+@startuml
+left to right direction
+
+actor "Usuario" as USR
+actor "CAIO" as CAIO
+actor "Proveedor Cloud" as PC
+
+@enduml

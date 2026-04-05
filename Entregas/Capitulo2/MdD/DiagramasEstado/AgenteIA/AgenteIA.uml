@@ -1,0 +1,18 @@
+@startuml
+
+[*] --> DESCUBIERTO
+
+DESCUBIERTO --> SIN_PROTECCION : evaluarPosturaSeguridad()
+SIN_PROTECCION --> PROTEGIDO : aplicarGuardarrail()
+PROTEGIDO --> PROTEGIDO : actualizarGuardarrail()
+PROTEGIDO --> SIN_PROTECCION : eliminarGuardarrail()
+
+SIN_PROTECCION --> PRIVILEGIOS_ANALIZADOS : analizarPrivilegios()
+PROTEGIDO --> PRIVILEGIOS_ANALIZADOS : analizarPrivilegios()
+PRIVILEGIOS_ANALIZADOS --> PRIVILEGIOS_REDUCIDOS : aplicarMinimoPrivilegio()
+
+SIN_PROTECCION --> AUTONOMIA_DEFINIDA : definirAutonomia()
+PROTEGIDO --> AUTONOMIA_DEFINIDA : definirAutonomia()
+PRIVILEGIOS_REDUCIDOS --> AUTONOMIA_DEFINIDA : definirAutonomia()
+
+@enduml

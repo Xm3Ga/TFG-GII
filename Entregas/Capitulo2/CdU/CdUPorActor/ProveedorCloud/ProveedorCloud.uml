@@ -1,0 +1,28 @@
+@startuml
+left to right direction
+
+actor "Proveedor Cloud" as PC
+
+rectangle "Misiones de Seguridad" {
+    usecase "Conectar proveedor cloud" as CdU01
+    usecase "Descubrir agentes" as CdU02
+    usecase "Configurar guardarraíl\nde contenido" as CdU03
+    usecase "Configurar protección\nanti-jailbreak" as CdU04
+    usecase "Configurar detección\nde PII" as CdU05
+    usecase "Configurar bloqueo\nde temas" as CdU06
+    usecase "Aplicar guardarraíl\na agentes" as CdU07
+    usecase "Analizar privilegios\nde agentes" as CdU08
+    usecase "Aplicar reducción\nde privilegios" as CdU09
+}
+
+PC -- CdU01
+PC -- CdU02
+PC -- CdU03
+PC -- CdU04
+PC -- CdU05
+PC -- CdU06
+PC -- CdU07
+PC -- CdU08
+PC -- CdU09
+
+@enduml

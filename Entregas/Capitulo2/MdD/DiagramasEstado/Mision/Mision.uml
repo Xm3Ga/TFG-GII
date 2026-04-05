@@ -1,0 +1,24 @@
+@startuml
+
+[*] --> INICIADA
+
+INICIADA --> CREDENCIAL_SELECCIONADA : seleccionarCredencial()
+CREDENCIAL_SELECCIONADA --> PERMISOS_VERIFICADOS : verificarPermisos()
+CREDENCIAL_SELECCIONADA --> ERROR_PERMISOS : permisosInsuficientes()
+
+ERROR_PERMISOS --> CREDENCIAL_SELECCIONADA : corregirPermisos()
+
+PERMISOS_VERIFICADOS --> EN_CONFIGURACION : iniciarConfiguracion()
+EN_CONFIGURACION --> CONFIGURADA : completarConfiguracion()
+CONFIGURADA --> APLICADA : aplicarCambios()
+APLICADA --> COMPLETADA : confirmarResultados()
+
+INICIADA --> CANCELADA : cancelarMision()
+CREDENCIAL_SELECCIONADA --> CANCELADA : cancelarMision()
+PERMISOS_VERIFICADOS --> CANCELADA : cancelarMision()
+EN_CONFIGURACION --> CANCELADA : cancelarMision()
+
+COMPLETADA --> [*]
+CANCELADA --> [*]
+
+@enduml

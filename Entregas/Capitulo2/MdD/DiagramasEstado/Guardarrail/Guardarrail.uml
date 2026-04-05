@@ -1,0 +1,14 @@
+@startuml
+
+[*] --> CONFIGURADO
+
+CONFIGURADO --> CREADO : crearEnProveedor()
+CREADO --> ASIGNADO : aplicarAAgente()
+ASIGNADO --> ACTUALIZADO : actualizarConfiguracion()
+ACTUALIZADO --> ASIGNADO : confirmarActualizacion()
+ASIGNADO --> CREADO : desasociarDeAgente()
+CREADO --> ELIMINADO : eliminar()
+
+ELIMINADO --> [*]
+
+@enduml

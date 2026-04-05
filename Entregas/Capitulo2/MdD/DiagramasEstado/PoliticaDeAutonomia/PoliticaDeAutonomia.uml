@@ -1,0 +1,26 @@
+@startuml
+
+[*] --> BORRADOR
+
+BORRADOR --> CAPACIDADES_EVALUADAS : evaluarCapacidades()
+CAPACIDADES_EVALUADAS --> RIESGO_CLASIFICADO : clasificarRiesgo()
+
+RIESGO_CLASIFICADO --> NIVEL_ASIGNADO : asignarNivel()
+NIVEL_ASIGNADO --> REGLAS_DEFINIDAS : definirReglasSupervision()
+NIVEL_ASIGNADO --> ACTIVA : activarSinSupervision()
+
+REGLAS_DEFINIDAS --> ACTIVA : activar()
+
+ACTIVA --> EN_REVISION : iniciarRevision()
+EN_REVISION --> ACTIVA : confirmarRevision()
+EN_REVISION --> RIESGO_CLASIFICADO : reclasificarRiesgo()
+
+ACTIVA --> SUSPENDIDA : suspender()
+SUSPENDIDA --> ACTIVA : reactivar()
+SUSPENDIDA --> DESACTIVADA : desactivar()
+
+ACTIVA --> DESACTIVADA : desactivar()
+
+DESACTIVADA --> [*]
+
+@enduml

@@ -1,0 +1,21 @@
+@startuml
+
+left to right direction
+
+actor "Ingeniero QA" as QA
+
+rectangle "Testing" {
+  usecase "Analizar documentación" as UC1
+  usecase "Estructurar casos de uso\ny requisitos funcionales" as UC2
+  usecase "Generar escenarios\nde prueba" as UC3
+  usecase "Revisar escenarios\ngenerados" as UC4
+  usecase "Publicar escenarios\nen API Kiwi TCMS" as UC5
+}
+
+QA --> UC1
+QA --> UC2
+QA --> UC3
+QA --> UC4
+QA --> UC5
+
+@enduml

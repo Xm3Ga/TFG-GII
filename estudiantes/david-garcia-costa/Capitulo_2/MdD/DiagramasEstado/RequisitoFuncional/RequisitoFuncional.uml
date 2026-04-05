@@ -1,0 +1,20 @@
+@startuml
+state RequisitoFuncional {
+  [*] --> Creado
+
+  state Creado
+  state EnEdicion
+  state Validado
+  state Eliminado
+
+  Creado --> EnEdicion : editarRequisitoFuncional()
+  EnEdicion --> Validado : validarRequisitoFuncional()
+
+  Creado --> Eliminado : eliminarRequisitoFuncional()
+  EnEdicion --> Eliminado : eliminarRequisitoFuncional()
+  Validado --> Eliminado : eliminarRequisitoFuncional()
+
+  Validado --> [*]
+  Eliminado --> [*]
+}
+@enduml

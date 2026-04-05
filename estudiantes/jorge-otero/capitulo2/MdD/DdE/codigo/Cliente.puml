@@ -1,0 +1,14 @@
+@startuml Cliente
+
+hide empty description
+
+[*] --> NecesidadDeConsulta
+
+NecesidadDeConsulta --> CorreoEnviado : envia correo
+CorreoEnviado --> EsperandoRespuesta
+
+EsperandoRespuesta --> RespuestaRecibida : recibe respuesta
+
+RespuestaRecibida --> [*]
+
+@enduml

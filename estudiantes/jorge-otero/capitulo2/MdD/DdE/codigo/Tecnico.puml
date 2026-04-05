@@ -1,0 +1,29 @@
+@startuml Tecnico
+
+hide empty description
+
+[*] --> EsperandoCorreo
+
+EsperandoCorreo --> CorreoRecibido : llega correo
+CorreoRecibido --> AnalizandoCorreo
+
+AnalizandoCorreo --> InterpretandoIntencion
+
+InterpretandoIntencion --> EvaluarPeticion
+
+EvaluarPeticion --> SinConsulta : no requiere datos
+EvaluarPeticion --> ConsultandoSistemas : requiere datos
+
+ConsultandoSistemas --> ConsultaSgipe
+ConsultaSgipe --> ConsultaPetter
+ConsultaPetter --> ConsultaWepes
+
+ConsultaWepes --> AnalisisDatos
+
+SinConsulta --> GenerandoRespuesta
+AnalisisDatos --> GenerandoRespuesta
+
+GenerandoRespuesta --> EnviandoRespuesta
+EnviandoRespuesta --> [*]
+
+@enduml

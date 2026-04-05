@@ -1,0 +1,17 @@
+@startuml
+
+left to right direction
+
+actor "Project Manager" as PM
+
+rectangle "Testing" {
+  usecase "Gestionar documentación" as UC1
+  usecase "Gestionar casos de uso" as UC2
+  usecase "Gestionar requisitos\nfuncionales" as UC3
+}
+
+PM --> UC1
+PM --> UC2
+PM --> UC3
+
+@enduml

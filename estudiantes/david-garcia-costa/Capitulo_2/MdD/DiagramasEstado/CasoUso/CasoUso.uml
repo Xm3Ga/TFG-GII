@@ -1,0 +1,20 @@
+@startuml
+state CasoDeUso {
+  [*] --> Creado
+
+  state Creado
+  state EnEdicion
+  state Validado
+  state Eliminado
+
+  Creado --> EnEdicion : editarCasoUso()
+  EnEdicion --> Validado : validarCasoUso()
+
+  Creado --> Eliminado : eliminarCasoUso()
+  EnEdicion --> Eliminado : eliminarCasoUso()
+  Validado --> Eliminado : eliminarCasoUso()
+
+  Validado --> [*]
+  Eliminado --> [*]
+}
+@enduml

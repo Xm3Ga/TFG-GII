@@ -1,0 +1,79 @@
+@startuml
+
+skinparam rectangleBorderColor #333
+skinparam rectangleBackgroundColor #FAFAFA
+
+rectangle Organizacion
+rectangle Usuario
+rectangle ProveedorCloud
+rectangle Credencial
+rectangle AgenteIA
+rectangle Mision
+rectangle MisionDeGuardarrail
+rectangle MisionDeMinimoPrivilegio
+rectangle MisionDeAutonomia
+rectangle Guardarrail
+rectangle PoliticaDeContenido
+rectangle PoliticaDeTemas
+rectangle PoliticaDePII
+rectangle PoliticaDeGrounding
+rectangle Permiso
+rectangle AnalisisDePrivilegios
+rectangle RecomendacionDeReduccion
+rectangle PerfilDeUso
+rectangle NivelDeAutonomia
+rectangle PoliticaDeAutonomia
+rectangle OperacionDeRiesgo
+rectangle CategoriaDeRiesgo
+rectangle ReglaDeSupervision
+rectangle AprobacionHumana
+rectangle CAIO
+rectangle RegistroDeAuditoria
+
+Organizacion "1" o-- "*" Usuario : pertenece a
+Organizacion "1" o-- "*" Credencial : posee
+Organizacion "1" o-- "*" AgenteIA : despliega
+
+Credencial "*" -- "1" ProveedorCloud : conecta con
+AgenteIA "*" -- "1" ProveedorCloud : desplegado en
+
+' === Guardarraíles ===
+AgenteIA "*" -- "*" Guardarrail : protegido por
+Guardarrail "1" *-- "*" PoliticaDeContenido : contiene
+Guardarrail "1" *-- "*" PoliticaDeTemas : contiene
+Guardarrail "1" *-- "0..1" PoliticaDePII : contiene
+Guardarrail "1" *-- "0..1" PoliticaDeGrounding : contiene
+
+' === Mínimo Privilegio ===
+AgenteIA "1" -- "*" Permiso : tiene
+AgenteIA "1" -- "0..1" PerfilDeUso : genera
+PerfilDeUso "1" -- "*" Permiso : registra uso de
+AnalisisDePrivilegios "*" -- "1" AgenteIA : analiza
+AnalisisDePrivilegios "1" -- "*" RecomendacionDeReduccion : produce
+RecomendacionDeReduccion "*" -- "1" Permiso : recomienda eliminar
+
+' === Autonomía ===
+AgenteIA "1" -- "0..1" PoliticaDeAutonomia : tiene
+PoliticaDeAutonomia "1" -- "1" NivelDeAutonomia : asigna
+AgenteIA "1" -- "*" OperacionDeRiesgo : puede ejecutar
+OperacionDeRiesgo "*" -- "1" CategoriaDeRiesgo : clasificada en
+PoliticaDeAutonomia "1" -- "*" ReglaDeSupervision : define
+ReglaDeSupervision "*" -- "*" OperacionDeRiesgo : aplica a
+ReglaDeSupervision "1" -- "*" AprobacionHumana : genera
+AprobacionHumana "*" -- "1" Usuario : aprobada por
+
+' === Misiones ===
+Mision <|-- MisionDeGuardarrail
+Mision <|-- MisionDeMinimoPrivilegio
+Mision <|-- MisionDeAutonomia
+
+Mision "*" -- "1" Organizacion : pertenece a
+Mision "*" -- "1" Credencial : utiliza
+MisionDeGuardarrail "*" -- "*" Guardarrail : configura
+MisionDeMinimoPrivilegio "1" -- "*" AnalisisDePrivilegios : genera
+MisionDeAutonomia "*" -- "*" PoliticaDeAutonomia : configura
+
+CAIO "1" -- "*" Mision : guia
+Mision "1" -- "*" RegistroDeAuditoria : genera
+
+@enduml

@@ -1,0 +1,31 @@
+@startuml
+
+[*] --> PENDIENTE
+
+PENDIENTE --> EN_RECOPILACION : iniciarRecopilacion()
+
+EN_RECOPILACION --> DATOS_RECOPILADOS : completarRecopilacion()
+EN_RECOPILACION --> SIN_DATOS_SUFICIENTES : datosInsuficientes()
+
+SIN_DATOS_SUFICIENTES --> EN_OBSERVACION : iniciarObservacion()
+EN_OBSERVACION --> EN_RECOPILACION : periodoCompletado()
+
+DATOS_RECOPILADOS --> EN_COMPARACION : compararPermisos()
+EN_COMPARACION --> RECOMENDACIONES_GENERADAS : generarRecomendaciones()
+
+RECOMENDACIONES_GENERADAS --> PARCIALMENTE_ACEPTADO : aceptarParcialmente()
+RECOMENDACIONES_GENERADAS --> TOTALMENTE_ACEPTADO : aceptarTodas()
+RECOMENDACIONES_GENERADAS --> RECHAZADO : rechazarTodas()
+
+PARCIALMENTE_ACEPTADO --> APLICADO : aplicarReduccion()
+TOTALMENTE_ACEPTADO --> APLICADO : aplicarReduccion()
+
+APLICADO --> VERIFICADO : verificarFuncionamiento()
+APLICADO --> REVERTIDO : errorDetectado()
+
+REVERTIDO --> RECOMENDACIONES_GENERADAS : regenerar()
+
+VERIFICADO --> [*]
+RECHAZADO --> [*]
+
+@enduml
