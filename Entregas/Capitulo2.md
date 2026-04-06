@@ -2,7 +2,9 @@
 
 En este capítulo se presenta el modelo del dominio del sistema de misiones de seguridad de la plataforma Horizon. El modelo del dominio es una representación de las clases conceptuales más importantes del mundo real en el contexto de la solución propuesta (Larman, 2004). Su objetivo es generar un vocabulario común entre el cliente, los usuarios y los desarrolladores, facilitando la comprensión de la estructura y dinámica del sistema.
 
-El modelo se ha construido a partir de la información recogida en el Capítulo 1, del análisis del código existente de la plataforma y del estudio de las APIs de los proveedores cloud con los que el sistema debe integrarse.
+El modelo está construido a partir de la información recogida en el Capítulo 1, del análisis del código de la plataforma y del estudio de las APIs de los proveedores cloud con los que el sistema debe integrarse.
+
+Este modelo, con casi total seguridad, cambiará en las siguientes entregas, dado que es muy complicado definir desde el principio tantos factores. Una vez que el código vaya tomando forma, se intentará seguir este modelo, y se harán los cambios necesarios para reflejar el estado actual del proyecto.
 
 ## 3.1. Diagrama de clases del dominio
 
