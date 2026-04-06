@@ -1,8 +1,0 @@
-@startuml
-left to right direction
-
-actor "Kiwi TCMS" as KIWI
-actor "Project Manager" as PM
-actor "Ingeniero QA" as QA
-
-@enduml

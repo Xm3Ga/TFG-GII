@@ -1,2 +1,0 @@
-# Disciplina de Requisitos
-## Actores
