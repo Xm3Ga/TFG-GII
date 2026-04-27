@@ -1,0 +1,161 @@
+@startuml
+hide circle
+skinparam linetype ortho
+
+entity organizations {
+  * id : uuid
+  --
+  name : string
+  reasoning_llm_config_id : uuid
+  conversation_llm_config_id : uuid
+  security_enabled : boolean
+  permission_timeout_days : integer
+  roadmap_json : text
+}
+
+entity users {
+  * id : uuid
+  --
+  organization_id : uuid
+  email : string
+  name : string
+  role : string
+}
+
+entity credentials {
+  * id : uuid
+  --
+  organization_id : uuid
+  name : string
+  provider : string
+  encrypted_data : text
+  region : string
+  is_valid : boolean
+}
+
+entity agents {
+  * id : uuid
+  --
+  organization_id : uuid
+  provider : string
+  provider_id : string
+  name : string
+  type : string
+  status : string
+  region : string
+  role_arn : string
+  raw_data : json
+}
+
+entity missions {
+  * id : uuid
+  --
+  organization_id : uuid
+  credential_id : uuid
+  mission_type : string
+  provider : string
+  status : string
+  lifecycle : string
+  target_projects : text
+}
+
+entity project_scopes {
+  * id : uuid
+  --
+  organization_id : uuid
+  credential_id : uuid
+  project_id : string
+  core_granted : boolean
+  maintenance_roles : text
+  mission_active_roles : text
+  active_mission_id : uuid
+  status : string
+}
+
+entity project_locks {
+  * id : uuid
+  --
+  organization_id : uuid
+  project_id : string
+  mission_id : uuid
+  expires_at : datetime
+}
+
+entity permission_events {
+  * id : uuid
+  --
+  organization_id : uuid
+  credential_id : uuid
+  mission_id : uuid
+  project_id : string
+  action : string
+  role : string
+  permission_type : string
+  user_id : uuid
+  details : json
+}
+
+entity audit_logs {
+  * id : uuid
+  --
+  organization_id : uuid
+  action : string
+  resource_type : string
+  resource_id : uuid
+  provider : string
+  details : json
+  created_at : datetime
+}
+
+entity security_scan_results {
+  * id : uuid
+  --
+  organization_id : uuid
+  agent_id : uuid
+  overall_risk : string
+  risk_score : integer
+  findings : text
+  recommendations : text
+  scanned_at : datetime
+}
+
+entity llm_configs {
+  * id : uuid
+  --
+  organization_id : uuid
+  provider : string
+  api_key_encrypted : text
+  model : string
+  is_valid : boolean
+}
+
+entity llm_usage_logs {
+  * id : uuid
+  --
+  organization_id : uuid
+  provider : string
+  model : string
+  input_tokens : integer
+  output_tokens : integer
+  cost_usd : decimal
+  source : string
+}
+
+organizations ||--o{ users
+organizations ||--o{ credentials
+organizations ||--o{ agents
+organizations ||--o{ missions
+organizations ||--o{ audit_logs
+organizations ||--o{ security_scan_results
+organizations ||--o{ llm_configs
+organizations ||--o{ llm_usage_logs
+
+credentials ||--o{ missions
+credentials ||--o{ project_scopes
+credentials ||--o{ permission_events
+missions ||--o{ permission_events
+missions ||--o{ project_locks
+agents ||--o{ security_scan_results
+users ||--o{ permission_events
+
+@enduml

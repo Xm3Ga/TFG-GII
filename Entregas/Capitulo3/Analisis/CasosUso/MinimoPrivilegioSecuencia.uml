@@ -1,0 +1,43 @@
+@startuml
+actor Usuario
+participant "VistaMisionConversacional" as Vista
+participant "AutonomousMissionsRouter" as Router
+participant "MissionRepository" as MissionRepo
+participant "PermissionManager" as PM
+participant "GCPIntrospectionService" as GCP
+participant "PermissionEventRepository" as EventRepo
+
+Usuario -> Vista : inicia mision de minimo privilegio
+Vista -> Router : POST /autonomous-missions
+Router -> MissionRepo : crear Mission
+MissionRepo --> Router : mision pendiente
+Router --> Vista : mission_id
+
+Usuario -> Vista : confirma proyecto
+Vista -> Router : POST /verify-core
+Router -> PM : verify_core_permission()
+PM -> GCP : get_sa_roles()
+GCP --> PM : roles existentes
+PM -> EventRepo : registrar verify
+PM --> Router : permisos core
+Router --> Vista : resultado
+
+Usuario -> Vista : autoriza roles temporales
+Vista -> Router : POST /attach-roles
+Router -> PM : attach_mission_roles()
+PM -> GCP : assign_role()
+PM -> EventRepo : registrar attach / failed
+PM --> Router : roles adjuntados
+Router --> Vista : mision en progreso
+
+Usuario -> Vista : solicita reduccion
+Vista -> Router : POST /transition
+Router -> PM : transition_to_maintenance()
+PM -> GCP : assign_role(mantenimiento)
+PM -> GCP : verify_role_active()
+PM -> GCP : remove_role(temporal)
+PM -> EventRepo : registrar detach
+PM --> Router : transicion completada
+Router --> Vista : waiting_reduction / complete
+
+@enduml

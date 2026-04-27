@@ -1,0 +1,130 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+package "API" {
+  class CredentialsRouter
+  class AgentsRouter
+  class MissionsRouter
+  class AutonomousMissionsRouter
+  class SecurityRouter
+  class AuditLogsRouter
+  class CAIORouter
+}
+
+package "Servicios" {
+  class SyncService {
+    +sync_provider()
+    +sync_all()
+  }
+  class PermissionManager {
+    +verify_core_permission()
+    +attach_mission_roles()
+    +transition_to_maintenance()
+    +rollback_project()
+    +auto_reduce_expired()
+  }
+  class SecurityScanService {
+    +get_config()
+    +scan_all()
+    +scan_agent()
+  }
+  class LLMService {
+    +complete()
+    +configure()
+    +test_connection()
+  }
+  class KnowledgeAssemblyService
+}
+
+package "Repositorios" {
+  class CredentialRepository
+  class AgentRepository
+  class MissionRepository
+  class PermissionEventRepository
+  class AuditLogRepository
+  class SecurityScanRepository
+  class OrganizationRepository
+}
+
+package "Conectores" {
+  abstract class BaseConnector {
+    +test_connection()
+    +list_agents()
+    +apply_policy()
+  }
+  class ConnectorFactory {
+    +create()
+  }
+  class AWSConnector
+  class AzureConnector
+  class GCPConnector
+}
+
+package "Modelos ORM" {
+  class Organization
+  class User
+  class Credential
+  class Agent
+  class Mission
+  class PermissionEvent
+  class ProjectScope
+  class ProjectLock
+  class AuditLog
+  class SecurityScanResult
+  class LLMConfig
+  class LLMUsageLog
+}
+
+CredentialsRouter --> CredentialRepository
+CredentialsRouter --> ConnectorFactory
+CredentialsRouter --> AuditLog
+
+AgentsRouter --> AgentRepository
+AgentsRouter --> SecurityScanRepository
+AgentsRouter --> SyncService
+
+MissionsRouter --> SyncService
+MissionsRouter --> LLMService
+MissionsRouter --> AWSConnector
+MissionsRouter --> AuditLog
+
+AutonomousMissionsRouter --> PermissionManager
+AutonomousMissionsRouter --> MissionRepository
+
+SecurityRouter --> SecurityScanService
+CAIORouter --> KnowledgeAssemblyService
+CAIORouter --> LLMService
+AuditLogsRouter --> AuditLogRepository
+AuditLogsRouter --> LLMService
+
+SyncService --> CredentialRepository
+SyncService --> AgentRepository
+SyncService --> ConnectorFactory
+SyncService --> AuditLog
+
+PermissionManager --> MissionRepository
+PermissionManager --> PermissionEventRepository
+PermissionManager --> CredentialRepository
+PermissionManager --> ProjectScope
+PermissionManager --> ProjectLock
+
+SecurityScanService --> SecurityScanRepository
+SecurityScanService --> AgentRepository
+SecurityScanService --> OrganizationRepository
+SecurityScanService --> LLMService
+
+ConnectorFactory --> BaseConnector
+BaseConnector <|-- AWSConnector
+BaseConnector <|-- AzureConnector
+BaseConnector <|-- GCPConnector
+
+Organization "1" o-- "*" User
+Organization "1" o-- "*" Credential
+Organization "1" o-- "*" Agent
+Organization "1" o-- "*" Mission
+Organization "1" o-- "*" AuditLog
+Credential "1" o-- "*" Mission
+Agent "1" o-- "*" SecurityScanResult
+Mission "1" o-- "*" PermissionEvent
+
+@enduml

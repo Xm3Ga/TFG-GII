@@ -1,0 +1,71 @@
+@startuml
+left to right direction
+
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+
+package "Clases frontera" {
+  class VistaUsuario
+  class VistaCatalogoMisiones
+  class VistaMisionConversacional
+  class VistaCredenciales
+  class VistaAgentes
+  class VistaAuditoria
+}
+
+package "Clases control" {
+  class ControladorMision
+  class ControladorCredenciales
+  class ControladorDescubrimiento
+  class ControladorGuardarrailes
+  class ControladorPrivilegios
+  class ControladorAutonomia
+  class ControladorAuditoria
+}
+
+package "Clases entidad" {
+  class Organizacion
+  class Usuario
+  class Credencial
+  class ProveedorCloud
+  class AgenteIA
+  class Mision
+  class Guardarrail
+  class Permiso
+  class AnalisisDePrivilegios
+  class PoliticaDeAutonomia
+  class RegistroDeAuditoria
+}
+
+VistaUsuario --> VistaCatalogoMisiones
+VistaCatalogoMisiones --> VistaMisionConversacional
+VistaMisionConversacional --> ControladorMision
+VistaCredenciales --> ControladorCredenciales
+VistaAgentes --> ControladorDescubrimiento
+VistaAuditoria --> ControladorAuditoria
+
+ControladorMision --> ControladorCredenciales : valida credenciales
+ControladorMision --> ControladorDescubrimiento : obtiene agentes
+ControladorMision --> ControladorGuardarrailes : configura/aplica
+ControladorMision --> ControladorPrivilegios : analiza permisos
+ControladorMision --> ControladorAutonomia : clasifica riesgo
+ControladorMision --> ControladorAuditoria : registra eventos
+
+ControladorCredenciales --> Credencial
+ControladorCredenciales --> ProveedorCloud
+ControladorDescubrimiento --> AgenteIA
+ControladorGuardarrailes --> Guardarrail
+ControladorPrivilegios --> Permiso
+ControladorPrivilegios --> AnalisisDePrivilegios
+ControladorAutonomia --> PoliticaDeAutonomia
+ControladorAuditoria --> RegistroDeAuditoria
+
+Organizacion "1" o-- "*" Usuario
+Organizacion "1" o-- "*" Credencial
+Organizacion "1" o-- "*" AgenteIA
+Organizacion "1" o-- "*" Mision
+Mision "*" --> "1" Credencial
+AgenteIA "*" --> "1" ProveedorCloud
+Credencial "*" --> "1" ProveedorCloud
+
+@enduml

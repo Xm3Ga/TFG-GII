@@ -1,0 +1,34 @@
+@startuml
+actor Usuario
+participant "VistaMisionConversacional" as Vista
+participant "MissionsRouter" as Router
+participant "CredentialRepository" as CredRepo
+participant "AWSConnector" as AWS
+participant "AuditLog" as Audit
+
+Usuario -> Vista : inicia mision de guardarrail
+Vista -> Router : POST /missions/introspect/aws
+Router -> CredRepo : obtener credencial
+CredRepo --> Router : credencial cifrada
+Router -> AWS : verificar permisos Bedrock
+AWS --> Router : permisos disponibles / faltantes
+Router --> Vista : diagnostico
+
+Usuario -> Vista : configura politicas
+Vista -> Router : POST /missions/execute\ncreate_guardrail
+Router -> CredRepo : obtener y descifrar credencial
+Router -> AWS : create_guardrail(config)
+AWS --> Router : guardrail_id, arn, version
+Router -> Audit : guardrail_created
+Router --> Vista : resultado de creacion
+
+Usuario -> Vista : selecciona agentes
+Vista -> Router : POST /missions/execute\napply_guardrail_to_agents
+Router -> AWS : update_agent_guardrail()
+AWS -> AWS : prepare_agent()
+AWS --> Router : aplicados / fallidos
+Router -> Audit : guardrail_applied_to_agents
+Router --> Vista : resumen final
+Vista --> Usuario : muestra evidencias y errores
+
+@enduml

@@ -1,0 +1,49 @@
+@startuml
+left to right direction
+
+skinparam componentStyle rectangle
+
+actor Usuario
+
+component "Frontend Next.js\n(App Router + React)" as Frontend {
+  component "Paginas dashboard" as Pages
+  component "Componentes UI" as UI
+  component "Hooks TanStack Query" as Hooks
+  component "Cliente API" as ApiClient
+}
+
+component "Backend FastAPI" as Backend {
+  component "Routers API v1" as Routers
+  component "Servicios de aplicacion" as Services
+  component "Repositorios" as Repositories
+  component "Conectores cloud" as Connectors
+  component "Tareas periodicas" as Tasks
+}
+
+database "SQLite MVP\n(PostgreSQL en produccion)" as DB
+
+cloud "AWS Bedrock / IAM" as AWS
+cloud "Azure ML / Cost Management" as Azure
+cloud "GCP Vertex AI / IAM" as GCP
+cloud "Proveedores LLM\nAnthropic, OpenAI, Gemini..." as LLM
+cloud "Slack / Email" as Notifications
+
+Usuario --> Frontend : interactua
+Pages --> UI
+UI --> Hooks
+Hooks --> ApiClient
+ApiClient --> Routers : HTTPS / JSON
+
+Routers --> Services : coordina casos de uso
+Services --> Repositories : consulta y persiste
+Repositories --> DB : SQLAlchemy async
+Services --> Connectors : operaciones cloud
+Services --> LLM : chat, analisis y explicaciones
+Tasks --> Services : sincronizacion y reduccion
+Services --> Notifications : alertas e informes
+
+Connectors --> AWS
+Connectors --> Azure
+Connectors --> GCP
+
+@enduml

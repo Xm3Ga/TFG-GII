@@ -1,0 +1,52 @@
+@startuml
+
+node "Navegador del usuario" as Browser {
+  artifact "Interfaz Horizon" as WebUI
+}
+
+node "Docker Compose local / servidor MVP" as Host {
+  node "Contenedor frontend" as Frontend {
+    artifact "Next.js :3000" as Next
+  }
+
+  node "Contenedor backend" as Backend {
+    artifact "FastAPI :8000" as FastAPI
+    artifact "Alembic" as Alembic
+  }
+
+  database "SQLite theia_officer.db\n(volumen backend-data)" as SQLite
+}
+
+cloud "AWS" as AWS {
+  artifact "Bedrock Agents"
+  artifact "Bedrock Guardrails"
+  artifact "IAM"
+}
+
+cloud "GCP" as GCP {
+  artifact "Vertex AI"
+  artifact "Resource Manager / IAM"
+  artifact "BigQuery Billing"
+}
+
+cloud "Azure" as Azure {
+  artifact "Azure ML"
+  artifact "Cost Management"
+}
+
+cloud "Servicios externos" as External {
+  artifact "Proveedor LLM"
+  artifact "Email / Slack"
+}
+
+Browser --> Next : HTTPS
+Next --> FastAPI : REST JSON
+FastAPI --> SQLite : SQLAlchemy async
+Alembic --> SQLite : migraciones
+
+FastAPI --> AWS : SDK boto3
+FastAPI --> GCP : SDK Google Cloud
+FastAPI --> Azure : SDK Azure
+FastAPI --> External : APIs externas
+
+@enduml

@@ -1,0 +1,44 @@
+@startuml
+left to right direction
+
+package "frontend/src/app" as FEApp
+package "frontend/src/components" as FEComponents
+package "frontend/src/hooks" as FEHooks
+package "frontend/src/lib" as FELib
+
+package "backend/app/api/v1" as API
+package "backend/app/services" as Services
+package "backend/app/repositories" as Repositories
+package "backend/app/models" as Models
+package "backend/app/schemas" as Schemas
+package "backend/app/connectors" as Connectors
+package "backend/app/core" as Core
+package "backend/app/tasks" as Tasks
+package "backend/app/chat" as Chat
+package "backend/app/db" as DB
+
+FEApp --> FEComponents
+FEApp --> FEHooks
+FEComponents --> FELib
+FEHooks --> FELib
+FELib --> API : HTTP
+
+API --> Services
+API --> Repositories
+API --> Schemas
+API --> Core
+
+Services --> Repositories
+Services --> Connectors
+Services --> Models
+Services --> Schemas
+Services --> Core
+Services --> Chat
+
+Repositories --> Models
+Repositories --> DB
+Connectors --> Schemas
+Tasks --> Services
+Tasks --> Repositories
+
+@enduml
