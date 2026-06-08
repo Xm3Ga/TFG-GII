@@ -64,10 +64,10 @@ Los casos de uso definidos en la entrega anterior se agrupan en tres bloques fun
 | CdU-02 Descubrir agentes | ControladorDescubrimiento | `agents.py`, `SyncService`, `AgentRepository`, conectores cloud |
 | CdU-03 a CdU-06 Configurar guardarraíl | ControladorGuardarrailes | `missions.py`, `AWSConnector`, configuración de guardrails |
 | CdU-07 Aplicar guardarraíl a agentes | ControladorGuardarrailes | `update_agent_guardrail`, `prepare_agent`, auditoría |
-| CdU-08 Analizar privilegios | ControladorPrivilegios | `PermissionManager`, `ProjectScope`, `PermissionEvent` |
-| CdU-09 Aplicar reducción de privilegios | ControladorPrivilegios | transición a permisos de mantenimiento, rollback y auto-reduce |
-| CdU-10 Definir niveles de autonomía | ControladorAutonomia | `SecurityScanService`, análisis de riesgo, política de autonomía prevista |
-| CdU-11 Configurar supervisión humana | ControladorAutonomia | reglas de supervisión, aprobadores, notificaciones |
+| CdU-08 Analizar privilegios | ControladorPrivilegios | `least_privilege.py`, `LeastPrivilegeService`, `LeastPrivilegeBaseline` |
+| CdU-09 Aplicar reducción de privilegios | ControladorPrivilegios | `LeastPrivilegeApplyRun`, aprobación explícita, locks y rollback |
+| CdU-10 Clasificar autonomía | ControladorAutonomia | `autonomy.py`, `AutonomyService`, `AgentAutonomyProfile` |
+| CdU-11 Revisar validaciones humanas propuestas | ControladorAutonomia | `proposed_validations` y vista de seguridad |
 
 ### Conexión y descubrimiento de agentes
 
@@ -87,23 +87,23 @@ El flujo se divide en tres partes: verificación de permisos IAM, creación o ac
 
 ### Mínimo privilegio
 
-La misión de mínimo privilegio se diseña alrededor de una idea simple: el CAIO no debe necesitar permisos amplios de forma permanente. Para ello se diferencia entre permisos temporales de misión y permisos de mantenimiento. Durante una operación concreta se pueden asignar permisos más amplios, pero después se reducen a un conjunto más pequeño y estable.
+La misión de mínimo privilegio se diseña alrededor de una idea simple: cada agente debe conservar solo los permisos necesarios para operar. En el código final esta misión tiene un módulo específico, no depende del ciclo de permisos de misiones autónomas.
 
 ![Secuencia de mínimo privilegio](./Capitulo3/Analisis/CasosUso/MinimoPrivilegioSecuencia.svg)
 
 Archivo fuente del diagrama: [MinimoPrivilegioSecuencia.uml](./Capitulo3/Analisis/CasosUso/MinimoPrivilegioSecuencia.uml).
 
-En el código actual esta lógica está implementada principalmente para GCP mediante `PermissionManager`. Aunque el planteamiento del TFG habla de analizar privilegios de agentes de IA, la implementación existente se centra, de momento, en gestionar el ciclo de vida de permisos de las misiones autónomas: verificación de permisos base, asignación de roles, transición a mantenimiento, rollback y reducción automática.
+En el código actual esta lógica se implementa mediante `least_privilege.py` y `LeastPrivilegeService`. El flujo ejecuta un preflight para resolver identidades runtime, genera `LeastPrivilegeBaseline` por agente, permite revisión humana y aplica cambios solo con aprobación explícita o en modo dry-run. Si se aplican cambios, se crea un `LeastPrivilegeApplyRun` con snapshot de rollback.
 
 ### Autonomía y supervisión humana
 
-La misión de autonomía todavía está más cercana al diseño que a una implementación completa. La base ya existe en el sistema mediante el análisis de seguridad de agentes, que usa el inventario de agentes y un LLM para generar hallazgos, recomendaciones y nivel de riesgo. A partir de esa información se puede construir la política de autonomía de cada agente.
+La misión de autonomía tiene un módulo específico en el código final. No se basa en el análisis OWASP general ni crea una política ejecutable; analiza metadatos de agentes y genera perfiles de autonomía con recomendaciones de validación humana.
 
 ![Secuencia de autonomía](./Capitulo3/Analisis/CasosUso/AutonomiaSecuencia.svg)
 
 Archivo fuente del diagrama: [AutonomiaSecuencia.uml](./Capitulo3/Analisis/CasosUso/AutonomiaSecuencia.uml).
 
-La idea de diseño es que el sistema analice las capacidades del agente, clasifique sus operaciones y proponga un nivel de autonomía: total, supervisado o restringido. Cuando el agente tenga operaciones de riesgo medio, alto o crítico, el sistema deberá crear reglas de supervisión humana. Esta parte quedará como una de las evoluciones naturales del MVP.
+La idea implementada es que `AutonomyService` detecte señales como pagos, escritura de datos, IAM/RBAC, datos sensibles, comunicaciones externas, cambios en producción o ejecución de código. El resultado se guarda como `AgentAutonomyProfile`, con nivel `low`, `medium`, `high` o `unknown`, evidencias y `proposed_validations`. El enforcement runtime queda fuera del MVP.
 
 ## 4.4. Clases de análisis
 
@@ -138,13 +138,13 @@ Las clases control coordinan la realización de los casos de uso. En el diseño 
 | `ControladorAutonomia` | CdU-10 y CdU-11 |
 | `ControladorAuditoria` | Trazabilidad transversal |
 
-Estas clases control no aparecen literalmente con esos nombres en el código, pero se corresponden con routers y servicios del backend. Por ejemplo, `ControladorGuardarrailes` se materializa principalmente en `missions.py` y `AWSConnector`, mientras que `ControladorPrivilegios` se materializa en `autonomous_missions.py` y `PermissionManager`.
+Estas clases control no aparecen literalmente con esos nombres en el código, pero se corresponden con routers y servicios del backend. Por ejemplo, `ControladorGuardarrailes` se materializa principalmente en `missions.py` y los conectores cloud, `ControladorPrivilegios` en `least_privilege.py` y `LeastPrivilegeService`, y `ControladorAutonomia` en `autonomy.py` y `AutonomyService`.
 
 ### Clases entidad
 
-Las clases entidad proceden del modelo del dominio y de las tablas reales del sistema. Entre ellas destacan `Organizacion`, `Usuario`, `Credencial`, `AgenteIA`, `Mision`, `Guardarrail`, `Permiso`, `PoliticaDeAutonomia` y `RegistroDeAuditoria`.
+Las clases entidad proceden del modelo del dominio y de las tablas reales del sistema. Entre ellas destacan `Organizacion`, `Usuario`, `Credencial`, `AgenteIA`, `Guardarrail`, `BaselinePrivilegios`, `PerfilAutonomiaAgente` y `RegistroDeAuditoria`.
 
-En el diseño final algunas de estas entidades tienen una correspondencia directa con modelos ORM (`Organization`, `User`, `Credential`, `Agent`, `Mission`, `AuditLog`). Otras, como `Guardarrail` o `PoliticaDeAutonomia`, existen todavía como estructuras de configuración o conceptos de diseño, y deberán evolucionar hacia modelos propios si el producto requiere persistirlas de forma independiente del proveedor.
+En el diseño final algunas de estas entidades tienen una correspondencia directa con modelos ORM (`Organization`, `User`, `Credential`, `Agent`, `AuditLog`, `LeastPrivilegeBaseline`, `LeastPrivilegeApplyRun`, `AutonomyScanRun`, `AgentAutonomyProfile`). Los guardarraíles dependen más del proveedor: AWS usa Bedrock Guardrails y GCP Security Settings para los casos soportados.
 
 ## 4.5. Transición de análisis a diseño
 
@@ -155,10 +155,10 @@ La transición de análisis a diseño consiste en convertir las responsabilidade
 | `VistaMisionConversacional` | `missions-content.tsx`, componentes de misión | Centraliza la experiencia guiada por hitos y conversación. |
 | `ControladorCredenciales` | `credentials.py`, `CredentialRepository`, `CredentialEncryptor` | Gestiona validación, cifrado y persistencia de credenciales. |
 | `ControladorDescubrimiento` | `SyncService`, `ConnectorFactory`, `AgentRepository` | Coordina el descubrimiento multi-proveedor y normaliza agentes. |
-| `ControladorGuardarrailes` | `missions.py`, `AWSConnector` | Ejecuta acciones de Bedrock Guardrails y registra auditoría. |
-| `ControladorPrivilegios` | `PermissionManager`, `MissionRepository`, `PermissionEventRepository` | Controla el ciclo de permisos temporales, rollback y reducción. |
-| `ControladorAutonomia` | `SecurityScanService`, `LLMService` | Analiza riesgo y sirve como base para políticas de autonomía. |
-| `RegistroDeAuditoria` | `AuditLog`, `PermissionEvent` | Mantiene trazabilidad funcional y trazabilidad específica de IAM. |
+| `ControladorGuardarrailes` | `missions.py`, `AWSConnector`, `GCPConnector` | Ejecuta creación, actualización y aplicación de guardarraíles/security settings. |
+| `ControladorPrivilegios` | `least_privilege.py`, `LeastPrivilegeService` | Genera baselines, aplica cambios aprobados y conserva rollback. |
+| `ControladorAutonomia` | `autonomy.py`, `AutonomyService` | Clasifica agentes y propone validaciones humanas. |
+| `RegistroDeAuditoria` | `AuditLog`, `LeastPrivilegeEvent` | Mantiene trazabilidad funcional y trazabilidad específica de mínimo privilegio. |
 
 Esta transición también muestra una decisión importante: no se ha creado una clase controladora por cada caso de uso de manera literal. En su lugar, se agrupan responsabilidades relacionadas en servicios. Esto reduce duplicación y mantiene mayor cohesión.
 
@@ -179,8 +179,9 @@ Los routers de FastAPI son la puerta de entrada al backend. Cada router agrupa e
 | `credentials.py` | Crear, listar, borrar, validar credenciales y lanzar sincronizaciones. |
 | `agents.py` | Consultar agentes, estadísticas, cumplimiento y evidencias. |
 | `missions.py` | Gestionar chat de misión, introspección y ejecución de acciones cloud. |
-| `autonomous_missions.py` | Gestionar misiones autónomas y ciclo de permisos. |
-| `security.py` | Configurar y ejecutar análisis de seguridad OWASP sobre agentes. |
+| `least_privilege.py` | Gestionar preflight, scans, baselines, apply runs y rollback de mínimo privilegio. |
+| `autonomy.py` | Gestionar scans de autonomía y perfiles por agente. |
+| `security.py` | Mostrar evidencias complementarias de postura de seguridad. |
 | `audit_logs.py` | Consultar eventos de auditoría e interpretarlos con el CAIO. |
 | `caio.py` | Gestionar el chat general del CAIO y su memoria conversacional. |
 
@@ -191,8 +192,8 @@ Los servicios contienen la lógica principal. Son los componentes más important
 | Servicio | Responsabilidad |
 | --- | --- |
 | `SyncService` | Descubrir agentes de un proveedor y sincronizarlos con la base de datos. |
-| `PermissionManager` | Gestionar permisos temporales, mantenimiento, rollback, locks y eventos. |
-| `SecurityScanService` | Analizar agentes con un LLM frente a categorías de riesgo OWASP. |
+| `LeastPrivilegeService` | Resolver identidades runtime, generar baselines, aplicar cambios aprobados y ejecutar rollback. |
+| `AutonomyService` | Clasificar agentes por señales de riesgo y guardar perfiles de autonomía. |
 | `LLMService` | Abstraer múltiples proveedores de modelos y registrar uso/coste. |
 | `KnowledgeAssemblyService` | Construir contexto para el CAIO a partir de datos de la organización. |
 
@@ -224,31 +225,30 @@ Finalmente, el usuario selecciona los agentes objetivo y el sistema ejecuta `upd
 
 ### CdU-08 y CdU-09: analizar y reducir privilegios
 
-El diseño de mínimo privilegio se apoya en `PermissionManager`. La clase gestiona un ciclo de vida seguro para permisos de misiones autónomas:
+El diseño de mínimo privilegio se apoya en `LeastPrivilegeService`. El flujo real es:
 
-1. Verificar que la cuenta de servicio tiene permisos base.
-2. Crear o actualizar el alcance del proyecto (`ProjectScope`).
-3. Asignar roles temporales necesarios para la misión.
-4. Registrar cada cambio en `PermissionEvent`.
-5. Transicionar a roles de mantenimiento más reducidos.
-6. Hacer rollback si algo falla.
-7. Ejecutar reducción automática si pasa el plazo configurado.
+1. Ejecutar preflight sobre credencial y agentes.
+2. Resolver la identidad runtime de cada agente.
+3. Obtener permisos actuales y evidencias disponibles.
+4. Generar `LeastPrivilegeBaseline`.
+5. Exigir revisión y aprobación explícita para aplicar cambios reales.
+6. Crear `LeastPrivilegeApplyRun` y snapshot de rollback.
+7. Ejecutar rollback si el usuario lo solicita o si la operación debe revertirse.
 
-Este diseño cubre una parte muy relevante del principio de mínimo privilegio: evitar que los permisos elevados permanezcan más tiempo del necesario. En una siguiente iteración, este mismo mecanismo puede ampliarse para comparar permisos asignados frente a permisos usados por cada agente.
+Este diseño cubre una parte muy relevante del principio de mínimo privilegio: no aplicar cambios sin evidencia, revisión y posibilidad de reversión.
 
 ### CdU-10 y CdU-11: autonomía y supervisión humana
 
-La parte de autonomía se diseña usando como base los resultados de `SecurityScanService`. Este servicio analiza los agentes y produce hallazgos, recomendaciones y nivel de riesgo. A partir de ahí, el diseño propone generar una política de autonomía por agente.
+La parte de autonomía se diseña usando `AutonomyService`. El servicio analiza metadatos de los agentes descubiertos y produce un perfil de autonomía por agente.
 
-La política debe contener:
+El perfil contiene:
 
-- Nivel de autonomía asignado.
-- Operaciones de riesgo detectadas.
-- Reglas que requieren aprobación humana.
-- Usuarios o roles aprobadores.
-- Comportamiento por defecto si no hay respuesta.
+- Nivel de autonomía (`low`, `medium`, `high` o `unknown`).
+- Categorías de riesgo detectadas.
+- Evidencias que justifican la clasificación.
+- Validaciones humanas propuestas.
 
-Aunque el modelo de autonomía completo no está implementado todavía, el análisis de riesgo y la infraestructura de auditoría ya permiten construirlo de forma coherente con el resto del sistema.
+Aunque las validaciones humanas se proponen, el MVP no intercepta acciones runtime ni crea un flujo de aprobaciones ejecutable.
 
 ## 4.8. Diseño arquitectónico
 
@@ -262,7 +262,7 @@ La arquitectura propuesta responde directamente a los requisitos no funcionales:
 | Rendimiento | Sincronización por proveedor, paginación y consultas acotadas. |
 | Extensibilidad | Separación entre routers, servicios, repositorios y conectores. |
 | Cumplimiento normativo | Auditoría persistente, evidencias y análisis de riesgo. |
-| Trazabilidad | `AuditLog` y `PermissionEvent` como registros históricos. |
+| Trazabilidad | `AuditLog` y `LeastPrivilegeEvent` como registros históricos. |
 
 La decisión de usar FastAPI en el backend facilita definir una API clara, tipada con esquemas Pydantic y documentada automáticamente. SQLAlchemy permite trabajar con SQLite durante el MVP y migrar a PostgreSQL sin cambiar el modelo conceptual. En el frontend, Next.js permite construir una interfaz modular y orientada a componentes, adecuada para un producto B2B.
 
@@ -317,10 +317,13 @@ Las tablas principales son:
 | `users` | Usuarios pertenecientes a una organización. |
 | `credentials` | Credenciales cloud cifradas por organización y proveedor. |
 | `agents` | Inventario normalizado de agentes descubiertos. |
-| `missions` | Misiones autónomas con estado, proveedor, credencial y proyectos objetivo. |
-| `project_scopes` | Estado de permisos por proyecto y credencial. |
-| `project_locks` | Bloqueos temporales para evitar conflictos entre misiones. |
-| `permission_events` | Registro inmutable de cambios IAM. |
+| `least_privilege_scans` | Ejecuciones de análisis de mínimo privilegio. |
+| `least_privilege_baselines` | Propuestas de permisos mínimos por agente. |
+| `least_privilege_apply_runs` | Aplicaciones, dry-runs y rollbacks de baselines. |
+| `least_privilege_events` | Eventos de auditoría específicos de mínimo privilegio. |
+| `least_privilege_locks` | Bloqueos temporales para evitar cambios concurrentes. |
+| `autonomy_scan_runs` | Ejecuciones de clasificación de autonomía. |
+| `agent_autonomy_profiles` | Perfiles de autonomía por agente con evidencias y validaciones propuestas. |
 | `audit_logs` | Auditoría general de acciones de la plataforma. |
 | `security_scan_results` | Resultados de análisis de riesgo por agente. |
 | `llm_configs` | Configuración de proveedores LLM por organización. |
@@ -338,11 +341,11 @@ La siguiente tabla resume cómo se mantiene la trazabilidad desde los requisitos
 | Descubrir agentes | `ControladorDescubrimiento` | `SyncService`, `AgentRepository` | Arquitectura, clases de diseño |
 | Configurar guardarraíl | `ControladorGuardarrailes` | `missions.py`, `AWSConnector` | Secuencia de guardarraíles |
 | Aplicar guardarraíl | `ControladorGuardarrailes` | `update_agent_guardrail`, `prepare_agent` | Secuencia de guardarraíles |
-| Analizar privilegios | `ControladorPrivilegios` | `PermissionManager`, `ProjectScope` | Secuencia de mínimo privilegio |
-| Reducir privilegios | `ControladorPrivilegios` | `transition_to_maintenance`, `auto_reduce_expired` | DER, clases de diseño |
-| Definir autonomía | `ControladorAutonomia` | `SecurityScanService`, política prevista | Secuencia de autonomía |
-| Configurar supervisión humana | `ControladorAutonomia` | reglas y aprobadores previstos | Secuencia de autonomía |
-| Registrar auditoría | `ControladorAuditoria` | `AuditLog`, `PermissionEvent` | DER, arquitectura |
+| Analizar privilegios | `ControladorPrivilegios` | `LeastPrivilegeService`, `LeastPrivilegeBaseline` | Secuencia de mínimo privilegio |
+| Reducir privilegios | `ControladorPrivilegios` | `LeastPrivilegeApplyRun`, rollback snapshot | DER, clases de diseño |
+| Clasificar autonomía | `ControladorAutonomia` | `AutonomyService`, `AgentAutonomyProfile` | Secuencia de autonomía |
+| Revisar validaciones humanas | `ControladorAutonomia` | `proposed_validations`, vista `/security` | Secuencia de autonomía |
+| Registrar auditoría | `ControladorAuditoria` | `AuditLog`, `LeastPrivilegeEvent` | DER, arquitectura |
 
 Esta trazabilidad es especialmente importante en este TFG porque el sistema todavía está evolucionando. Al dejar clara la relación entre requisitos y componentes, es más sencillo justificar qué partes se han implementado ya, cuáles están en diseño y cuáles se deben abordar en próximas iteraciones.
 
@@ -350,9 +353,9 @@ Esta trazabilidad es especialmente importante en este TFG porque el sistema toda
 
 El diseño presentado es coherente con el MVP actual, pero existen limitaciones que deben quedar claras:
 
-1. El soporte completo de guardarraíles está implementado principalmente para AWS Bedrock. Azure y GCP aparecen en la arquitectura multi-proveedor, pero sus capacidades equivalentes de guardarraíles todavía no están al mismo nivel.
-2. La misión de mínimo privilegio se encuentra implementada como ciclo de gestión de permisos de misiones autónomas, sobre todo para GCP. El análisis basado en logs de uso reales de cada agente queda como ampliación posterior.
-3. La misión de autonomía tiene una base técnica en el análisis de riesgo de agentes, pero aún necesita un modelo persistente específico de políticas de autonomía, reglas de supervisión y aprobaciones humanas.
+1. El soporte completo de guardarraíles está implementado principalmente para AWS Bedrock. GCP se soporta en controles concretos mediante Security Settings y Azure no se expone como guardarrail implementado.
+2. La misión de mínimo privilegio depende de poder resolver la identidad runtime y obtener evidencia suficiente. Si no es posible, la baseline queda bloqueada o con baja confianza.
+3. La misión de autonomía genera perfiles y propuestas de validación humana, pero no ejecuta enforcement runtime ni aprobaciones obligatorias.
 4. El MVP usa SQLite por simplicidad. Para producción sería recomendable PostgreSQL, especialmente si se quieren ejecutar sincronizaciones concurrentes y auditorías de gran volumen.
 5. Algunas misiones aparecen en el catálogo del frontend como futuras o no implementadas. Esto es normal en un producto en fase temprana, pero debe distinguirse de las misiones que ya tienen flujo real.
 

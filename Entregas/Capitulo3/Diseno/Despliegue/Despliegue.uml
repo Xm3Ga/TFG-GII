@@ -1,7 +1,7 @@
 @startuml
 
 node "Navegador del usuario" as Browser {
-  artifact "Interfaz Horizon" as WebUI
+  artifact "Interfaz Theia Officer" as WebUI
 }
 
 node "Docker Compose local / servidor MVP" as Host {

@@ -9,10 +9,10 @@
 | CdU-05 | Configurar detección de PII | Usuario | Alta |
 | CdU-06 | Configurar bloqueo de temas | Usuario | Media |
 | CdU-07 | Aplicar guardarraíl a agentes | Usuario | Alta |
-| CdU-08 | Analizar privilegios de agentes | Usuario | Media |
+| CdU-08 | Analizar privilegios de agentes | Usuario | Alta |
 | CdU-09 | Aplicar reducción de privilegios | Usuario | Media |
-| CdU-10 | Definir niveles de autonomía | Usuario | Media |
-| CdU-11 | Configurar supervisión humana | Usuario | Media |
+| CdU-10 | Clasificar autonomía de agentes | Usuario | Media |
+| CdU-11 | Revisar validaciones humanas propuestas | Usuario | Media |
 
 ## Justificación de la priorización
 
@@ -46,16 +46,16 @@ Completa el flujo de la misión de guardarraíles. Sin la capacidad de aplicar l
 
 ### CdU-08: Analizar privilegios de agentes — Media
 
-Es la funcionalidad central de la misión de mínimo privilegio. Su prioridad es media porque requiere un período de observación del comportamiento de los agentes para generar recomendaciones precisas, lo que la hace más adecuada para iteraciones posteriores.
+Es la funcionalidad central de la misión de mínimo privilegio. Su prioridad pasa a alta porque en el código final existe un módulo específico con preflight, scans y baselines (`LeastPrivilegeService`).
 
 ### CdU-09: Aplicar reducción de privilegios — Media
 
 Depende del análisis previo (CdU-08). Se desarrollará en la misma iteración que el análisis de privilegios.
 
-### CdU-10: Definir niveles de autonomía — Media
+### CdU-10: Clasificar autonomía de agentes — Media
 
-Es la funcionalidad central de la misión de autonomía. Su prioridad es media porque, aunque es importante, las misiones de guardarraíles ofrecen una protección más inmediata.
+Es la funcionalidad central de la misión de autonomía. Su prioridad es media porque genera perfiles y recomendaciones, pero no aplica enforcement runtime.
 
-### CdU-11: Configurar supervisión humana — Media
+### CdU-11: Revisar validaciones humanas propuestas — Media
 
-Complementa la definición de niveles de autonomía (CdU-10). Se desarrollará conjuntamente con la misión de autonomía en una iteración posterior.
+Complementa la clasificación de autonomía (CdU-10). En el MVP se limita a revisar propuestas de validación humana, no a configurar aprobadores y timeouts obligatorios.

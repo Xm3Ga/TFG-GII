@@ -11,6 +11,7 @@ package "Clases frontera" {
   class VistaCredenciales
   class VistaAgentes
   class VistaAuditoria
+  class VistaSeguridad
 }
 
 package "Clases control" {
@@ -31,9 +32,9 @@ package "Clases entidad" {
   class AgenteIA
   class Mision
   class Guardarrail
-  class Permiso
-  class AnalisisDePrivilegios
-  class PoliticaDeAutonomia
+  class BaselinePrivilegios
+  class PerfilAutonomiaAgente
+  class ValidacionHumanaPropuesta
   class RegistroDeAuditoria
 }
 
@@ -43,11 +44,13 @@ VistaMisionConversacional --> ControladorMision
 VistaCredenciales --> ControladorCredenciales
 VistaAgentes --> ControladorDescubrimiento
 VistaAuditoria --> ControladorAuditoria
+VistaSeguridad --> BaselinePrivilegios
+VistaSeguridad --> PerfilAutonomiaAgente
 
 ControladorMision --> ControladorCredenciales : valida credenciales
 ControladorMision --> ControladorDescubrimiento : obtiene agentes
 ControladorMision --> ControladorGuardarrailes : configura/aplica
-ControladorMision --> ControladorPrivilegios : analiza permisos
+ControladorMision --> ControladorPrivilegios : genera baselines
 ControladorMision --> ControladorAutonomia : clasifica riesgo
 ControladorMision --> ControladorAuditoria : registra eventos
 
@@ -55,9 +58,9 @@ ControladorCredenciales --> Credencial
 ControladorCredenciales --> ProveedorCloud
 ControladorDescubrimiento --> AgenteIA
 ControladorGuardarrailes --> Guardarrail
-ControladorPrivilegios --> Permiso
-ControladorPrivilegios --> AnalisisDePrivilegios
-ControladorAutonomia --> PoliticaDeAutonomia
+ControladorPrivilegios --> BaselinePrivilegios
+ControladorAutonomia --> PerfilAutonomiaAgente
+ControladorAutonomia --> ValidacionHumanaPropuesta
 ControladorAuditoria --> RegistroDeAuditoria
 
 Organizacion "1" o-- "*" Usuario

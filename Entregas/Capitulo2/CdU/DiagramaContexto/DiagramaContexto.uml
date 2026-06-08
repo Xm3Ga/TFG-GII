@@ -7,51 +7,45 @@ SIN_CONEXION --> PROVEEDOR_CONECTADO : conectarProveedorCloud()
 PROVEEDOR_CONECTADO --> AGENTES_DESCUBIERTOS : descubrirAgentes()
 
 AGENTES_DESCUBIERTOS --> MISION_GUARDARRAIL : iniciarMisionGuardarrail()
-AGENTES_DESCUBIERTOS --> MISION_PRIVILEGIO : iniciarMisionPrivilegio()
+AGENTES_DESCUBIERTOS --> MISION_PRIVILEGIO : iniciarMisionMinimoPrivilegio()
 AGENTES_DESCUBIERTOS --> MISION_AUTONOMIA : iniciarMisionAutonomia()
 
 state MISION_GUARDARRAIL {
     [*] --> CREDENCIAL_GR
     CREDENCIAL_GR : Seleccionar credencial
     CREDENCIAL_GR --> PERMISOS_GR : verificarPermisos()
-    PERMISOS_GR : Verificar permisos IAM
-    PERMISOS_GR --> CONFIGURACION_GR : iniciarConfiguracion()
-    CONFIGURACION_GR : Configurar guardarraíl\n(contenido / jailbreak / PII / temas)
+    PERMISOS_GR : Verificar permisos cloud
+    PERMISOS_GR --> CONFIGURACION_GR : configurarControl()
+    CONFIGURACION_GR : Configurar guardarrail\no security setting
     CONFIGURACION_GR --> APLICACION_GR : aplicarAAgentes()
-    APLICACION_GR : Seleccionar agentes y aplicar
+    APLICACION_GR : Aplicar y registrar\nresultado por agente
     APLICACION_GR --> [*]
 }
 
 state MISION_PRIVILEGIO {
     [*] --> CREDENCIAL_MP
     CREDENCIAL_MP : Seleccionar credencial
-    CREDENCIAL_MP --> PERMISOS_MP : verificarPermisos()
-    PERMISOS_MP : Verificar acceso a logs e IAM
-    PERMISOS_MP --> SELECCION_MP : seleccionarAgentes()
-    SELECCION_MP : Seleccionar agentes a analizar
-    SELECCION_MP --> ANALISIS_MP : analizarPrivilegios()
-    ANALISIS_MP : Recopilar historial de uso\ny comparar con permisos asignados
-    ANALISIS_MP --> RECOMENDACIONES_MP : generarRecomendaciones()
-    RECOMENDACIONES_MP : Revisar recomendaciones\nde reducción
-    RECOMENDACIONES_MP --> REDUCCION_MP : aplicarReduccion()
-    REDUCCION_MP : Aplicar reducción\ny verificar funcionamiento
-    REDUCCION_MP --> [*]
+    CREDENCIAL_MP --> PREFLIGHT_MP : preflight()
+    PREFLIGHT_MP : Resolver identidad runtime
+    PREFLIGHT_MP --> BASELINE_MP : generarBaseline()
+    BASELINE_MP : Permisos actuales,\npropuestos y removibles
+    BASELINE_MP --> REVISION_MP : revisarBaseline()
+    REVISION_MP : Aprobacion o dry-run
+    REVISION_MP --> APLICACION_MP : aplicarCambios()
+    APLICACION_MP : Guardar apply run\ny rollback snapshot
+    APLICACION_MP --> [*]
 }
 
 state MISION_AUTONOMIA {
-    [*] --> CREDENCIAL_MA
-    CREDENCIAL_MA : Seleccionar credencial
-    CREDENCIAL_MA --> PERMISOS_MA : verificarPermisos()
-    PERMISOS_MA : Verificar acceso a agentes
-    PERMISOS_MA --> CAPACIDADES_MA : analizarCapacidades()
-    CAPACIDADES_MA : Analizar herramientas\ny operaciones de cada agente
-    CAPACIDADES_MA --> RIESGO_MA : evaluarRiesgo()
-    RIESGO_MA : Clasificar operaciones\npor nivel de riesgo
-    RIESGO_MA --> NIVELES_MA : asignarNiveles()
-    NIVELES_MA : Asignar nivel de autonomía\n(total / supervisado / restringido)
-    NIVELES_MA --> SUPERVISION_MA : configurarHITL()
-    SUPERVISION_MA : Definir reglas de supervisión,\naprobadores y timeouts
-    SUPERVISION_MA --> [*]
+    [*] --> ALCANCE_MA
+    ALCANCE_MA : Seleccionar alcance
+    ALCANCE_MA --> ESCANEO_MA : analizarMetadatos()
+    ESCANEO_MA : Detectar senales de riesgo
+    ESCANEO_MA --> PERFIL_MA : guardarPerfil()
+    PERFIL_MA : Nivel, confianza,\nevidencias
+    PERFIL_MA --> VALIDACIONES_MA : proponerValidaciones()
+    VALIDACIONES_MA : Checkpoints HITL\nsin enforcement runtime
+    VALIDACIONES_MA --> [*]
 }
 
 MISION_GUARDARRAIL --> AGENTES_DESCUBIERTOS : completarMision()

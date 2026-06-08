@@ -13,54 +13,45 @@ rectangle MisionDeGuardarrail
 rectangle MisionDeMinimoPrivilegio
 rectangle MisionDeAutonomia
 rectangle Guardarrail
-rectangle PoliticaDeContenido
-rectangle PoliticaDeTemas
-rectangle PoliticaDePII
-rectangle PoliticaDeGrounding
-rectangle Permiso
-rectangle AnalisisDePrivilegios
-rectangle RecomendacionDeReduccion
-rectangle PerfilDeUso
-rectangle NivelDeAutonomia
-rectangle PoliticaDeAutonomia
-rectangle OperacionDeRiesgo
-rectangle CategoriaDeRiesgo
-rectangle ReglaDeSupervision
-rectangle AprobacionHumana
+rectangle SecuritySetting
+rectangle PoliticaGuardarrail
+rectangle IdentidadRuntime
+rectangle BaselinePrivilegios
+rectangle EjecucionAplicacionPrivilegios
+rectangle EventoPrivilegios
+rectangle PerfilAutonomiaAgente
+rectangle CategoriaRiesgoAutonomia
+rectangle ValidacionHumanaPropuesta
 rectangle CAIO
 rectangle RegistroDeAuditoria
 
 Organizacion "1" o-- "*" Usuario : pertenece a
 Organizacion "1" o-- "*" Credencial : posee
-Organizacion "1" o-- "*" AgenteIA : despliega
+Organizacion "1" o-- "*" AgenteIA : inventaria
 
 Credencial "*" -- "1" ProveedorCloud : conecta con
 AgenteIA "*" -- "1" ProveedorCloud : desplegado en
 
-' === Guardarraíles ===
+' === Guardarrailes ===
+MisionDeGuardarrail "*" -- "*" PoliticaGuardarrail : configura
+PoliticaGuardarrail "*" -- "0..1" Guardarrail : AWS Bedrock
+PoliticaGuardarrail "*" -- "0..1" SecuritySetting : GCP Dialogflow CX
 AgenteIA "*" -- "*" Guardarrail : protegido por
-Guardarrail "1" *-- "*" PoliticaDeContenido : contiene
-Guardarrail "1" *-- "*" PoliticaDeTemas : contiene
-Guardarrail "1" *-- "0..1" PoliticaDePII : contiene
-Guardarrail "1" *-- "0..1" PoliticaDeGrounding : contiene
+AgenteIA "*" -- "*" SecuritySetting : protegido por
 
-' === Mínimo Privilegio ===
-AgenteIA "1" -- "*" Permiso : tiene
-AgenteIA "1" -- "0..1" PerfilDeUso : genera
-PerfilDeUso "1" -- "*" Permiso : registra uso de
-AnalisisDePrivilegios "*" -- "1" AgenteIA : analiza
-AnalisisDePrivilegios "1" -- "*" RecomendacionDeReduccion : produce
-RecomendacionDeReduccion "*" -- "1" Permiso : recomienda eliminar
+' === Minimo Privilegio ===
+AgenteIA "1" -- "0..1" IdentidadRuntime : opera como
+MisionDeMinimoPrivilegio "1" -- "*" BaselinePrivilegios : genera
+BaselinePrivilegios "*" -- "1" AgenteIA : analiza
+BaselinePrivilegios "*" -- "1" IdentidadRuntime : propone permisos para
+BaselinePrivilegios "1" -- "*" EjecucionAplicacionPrivilegios : aplica/rollback
+EjecucionAplicacionPrivilegios "1" -- "*" EventoPrivilegios : registra
 
-' === Autonomía ===
-AgenteIA "1" -- "0..1" PoliticaDeAutonomia : tiene
-PoliticaDeAutonomia "1" -- "1" NivelDeAutonomia : asigna
-AgenteIA "1" -- "*" OperacionDeRiesgo : puede ejecutar
-OperacionDeRiesgo "*" -- "1" CategoriaDeRiesgo : clasificada en
-PoliticaDeAutonomia "1" -- "*" ReglaDeSupervision : define
-ReglaDeSupervision "*" -- "*" OperacionDeRiesgo : aplica a
-ReglaDeSupervision "1" -- "*" AprobacionHumana : genera
-AprobacionHumana "*" -- "1" Usuario : aprobada por
+' === Autonomia ===
+MisionDeAutonomia "1" -- "*" PerfilAutonomiaAgente : genera
+PerfilAutonomiaAgente "*" -- "1" AgenteIA : clasifica
+PerfilAutonomiaAgente "*" -- "*" CategoriaRiesgoAutonomia : detecta
+PerfilAutonomiaAgente "1" -- "*" ValidacionHumanaPropuesta : propone
 
 ' === Misiones ===
 Mision <|-- MisionDeGuardarrail
@@ -69,9 +60,6 @@ Mision <|-- MisionDeAutonomia
 
 Mision "*" -- "1" Organizacion : pertenece a
 Mision "*" -- "1" Credencial : utiliza
-MisionDeGuardarrail "*" -- "*" Guardarrail : configura
-MisionDeMinimoPrivilegio "1" -- "*" AnalisisDePrivilegios : genera
-MisionDeAutonomia "*" -- "*" PoliticaDeAutonomia : configura
 
 CAIO "1" -- "*" Mision : guia
 Mision "1" -- "*" RegistroDeAuditoria : genera

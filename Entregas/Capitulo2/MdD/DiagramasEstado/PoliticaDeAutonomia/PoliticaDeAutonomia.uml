@@ -1,26 +1,23 @@
 @startuml
+title Ciclo de vida de un Perfil de Autonomia
 
-[*] --> BORRADOR
+[*] --> ESCANEANDO
 
-BORRADOR --> CAPACIDADES_EVALUADAS : evaluarCapacidades()
-CAPACIDADES_EVALUADAS --> RIESGO_CLASIFICADO : clasificarRiesgo()
+ESCANEANDO --> CLASIFICADO : riesgosDetectados()
+ESCANEANDO --> DESCONOCIDO : metadatosInsuficientes()
 
-RIESGO_CLASIFICADO --> NIVEL_ASIGNADO : asignarNivel()
-NIVEL_ASIGNADO --> REGLAS_DEFINIDAS : definirReglasSupervision()
-NIVEL_ASIGNADO --> ACTIVA : activarSinSupervision()
+CLASIFICADO --> VALIDACIONES_PROPUESTAS : generarCheckpoints()
+DESCONOCIDO --> VALIDACIONES_PROPUESTAS : proponerRevisionManual()
 
-REGLAS_DEFINIDAS --> ACTIVA : activar()
+VALIDACIONES_PROPUESTAS --> REVISADO : revisarEnSecurity()
+REVISADO --> ACTUALIZADO : reescanear()
+ACTUALIZADO --> VALIDACIONES_PROPUESTAS : reemplazarPerfil()
 
-ACTIVA --> EN_REVISION : iniciarRevision()
-EN_REVISION --> ACTIVA : confirmarRevision()
-EN_REVISION --> RIESGO_CLASIFICADO : reclasificarRiesgo()
+note right of VALIDACIONES_PROPUESTAS
+El MVP no crea reglas ejecutables
+ni aprobaciones runtime.
+end note
 
-ACTIVA --> SUSPENDIDA : suspender()
-SUSPENDIDA --> ACTIVA : reactivar()
-SUSPENDIDA --> DESACTIVADA : desactivar()
-
-ACTIVA --> DESACTIVADA : desactivar()
-
-DESACTIVADA --> [*]
+REVISADO --> [*]
 
 @enduml

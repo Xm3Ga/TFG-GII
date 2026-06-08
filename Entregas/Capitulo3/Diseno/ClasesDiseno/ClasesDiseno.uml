@@ -5,7 +5,8 @@ package "API" {
   class CredentialsRouter
   class AgentsRouter
   class MissionsRouter
-  class AutonomousMissionsRouter
+  class LeastPrivilegeRouter
+  class AutonomyRouter
   class SecurityRouter
   class AuditLogsRouter
   class CAIORouter
@@ -16,41 +17,32 @@ package "Servicios" {
     +sync_provider()
     +sync_all()
   }
-  class PermissionManager {
-    +verify_core_permission()
-    +attach_mission_roles()
-    +transition_to_maintenance()
-    +rollback_project()
-    +auto_reduce_expired()
+  class LeastPrivilegeService {
+    +preflight()
+    +run_scan()
+    +apply_baseline()
+    +rollback_apply_run()
   }
-  class SecurityScanService {
-    +get_config()
-    +scan_all()
-    +scan_agent()
+  class AutonomyService {
+    +run_scan()
+    +classify_agent()
   }
-  class LLMService {
-    +complete()
-    +configure()
-    +test_connection()
-  }
+  class LLMService
   class KnowledgeAssemblyService
 }
 
 package "Repositorios" {
   class CredentialRepository
   class AgentRepository
-  class MissionRepository
-  class PermissionEventRepository
   class AuditLogRepository
-  class SecurityScanRepository
-  class OrganizationRepository
+  class LeastPrivilegeRepository
+  class AutonomyRepository
 }
 
 package "Conectores" {
   abstract class BaseConnector {
     +test_connection()
     +list_agents()
-    +apply_policy()
   }
   class ConnectorFactory {
     +create()
@@ -65,53 +57,44 @@ package "Modelos ORM" {
   class User
   class Credential
   class Agent
-  class Mission
-  class PermissionEvent
-  class ProjectScope
-  class ProjectLock
   class AuditLog
-  class SecurityScanResult
-  class LLMConfig
-  class LLMUsageLog
+  class LeastPrivilegeScan
+  class LeastPrivilegeBaseline
+  class LeastPrivilegeApplyRun
+  class LeastPrivilegeEvent
+  class LeastPrivilegeLock
+  class AutonomyScanRun
+  class AgentAutonomyProfile
 }
 
 CredentialsRouter --> CredentialRepository
 CredentialsRouter --> ConnectorFactory
-CredentialsRouter --> AuditLog
-
 AgentsRouter --> AgentRepository
-AgentsRouter --> SecurityScanRepository
 AgentsRouter --> SyncService
 
-MissionsRouter --> SyncService
-MissionsRouter --> LLMService
+MissionsRouter --> CredentialRepository
 MissionsRouter --> AWSConnector
-MissionsRouter --> AuditLog
+MissionsRouter --> GCPConnector
+MissionsRouter --> AuditLogRepository
 
-AutonomousMissionsRouter --> PermissionManager
-AutonomousMissionsRouter --> MissionRepository
-
-SecurityRouter --> SecurityScanService
+LeastPrivilegeRouter --> LeastPrivilegeService
+AutonomyRouter --> AutonomyService
+SecurityRouter --> LeastPrivilegeRepository
+SecurityRouter --> AutonomyRepository
+AuditLogsRouter --> AuditLogRepository
 CAIORouter --> KnowledgeAssemblyService
 CAIORouter --> LLMService
-AuditLogsRouter --> AuditLogRepository
-AuditLogsRouter --> LLMService
 
 SyncService --> CredentialRepository
 SyncService --> AgentRepository
 SyncService --> ConnectorFactory
-SyncService --> AuditLog
 
-PermissionManager --> MissionRepository
-PermissionManager --> PermissionEventRepository
-PermissionManager --> CredentialRepository
-PermissionManager --> ProjectScope
-PermissionManager --> ProjectLock
+LeastPrivilegeService --> LeastPrivilegeRepository
+LeastPrivilegeService --> AgentRepository
+LeastPrivilegeService --> ConnectorFactory
 
-SecurityScanService --> SecurityScanRepository
-SecurityScanService --> AgentRepository
-SecurityScanService --> OrganizationRepository
-SecurityScanService --> LLMService
+AutonomyService --> AutonomyRepository
+AutonomyService --> AgentRepository
 
 ConnectorFactory --> BaseConnector
 BaseConnector <|-- AWSConnector
@@ -121,10 +104,13 @@ BaseConnector <|-- GCPConnector
 Organization "1" o-- "*" User
 Organization "1" o-- "*" Credential
 Organization "1" o-- "*" Agent
-Organization "1" o-- "*" Mission
 Organization "1" o-- "*" AuditLog
-Credential "1" o-- "*" Mission
-Agent "1" o-- "*" SecurityScanResult
-Mission "1" o-- "*" PermissionEvent
+Organization "1" o-- "*" LeastPrivilegeScan
+Organization "1" o-- "*" AutonomyScanRun
+Agent "1" o-- "*" LeastPrivilegeBaseline
+Agent "1" o-- "0..1" AgentAutonomyProfile
+LeastPrivilegeScan "1" o-- "*" LeastPrivilegeBaseline
+LeastPrivilegeBaseline "1" o-- "*" LeastPrivilegeApplyRun
+AutonomyScanRun "1" o-- "*" AgentAutonomyProfile
 
 @enduml

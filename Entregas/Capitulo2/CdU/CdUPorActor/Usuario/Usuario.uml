@@ -10,22 +10,22 @@ rectangle "Misiones de Seguridad" {
         usecase "Descubrir agentes" as CdU02
     }
 
-    rectangle "Guardarraíles" {
-        usecase "Configurar guardarraíl\nde contenido" as CdU03
-        usecase "Configurar protección\nanti-jailbreak" as CdU04
-        usecase "Configurar detección\nde PII" as CdU05
-        usecase "Configurar bloqueo\nde temas" as CdU06
-        usecase "Aplicar guardarraíl\na agentes" as CdU07
+    rectangle "Guardarrailes" {
+        usecase "Configurar guardarrail\nde contenido" as CdU03
+        usecase "Configurar proteccion\nanti-jailbreak" as CdU04
+        usecase "Configurar deteccion\nde PII" as CdU05
+        usecase "Configurar controles\nadicionales" as CdU06
+        usecase "Aplicar guardarrail\na agentes" as CdU07
     }
 
-    rectangle "Mínimo Privilegio" {
+    rectangle "Minimo Privilegio" {
         usecase "Analizar privilegios\nde agentes" as CdU08
-        usecase "Aplicar reducción\nde privilegios" as CdU09
+        usecase "Aplicar reduccion\nde privilegios" as CdU09
     }
 
-    rectangle "Autonomía" {
-        usecase "Definir niveles\nde autonomía" as CdU10
-        usecase "Configurar supervisión\nhumana" as CdU11
+    rectangle "Autonomia" {
+        usecase "Clasificar autonomia\nde agentes" as CdU10
+        usecase "Revisar validaciones\nhumanas propuestas" as CdU11
     }
 }
 

@@ -3,35 +3,33 @@
 [*] --> INICIADA
 
 INICIADA --> CREDENCIAL_SELECCIONADA : seleccionarCredencial()
-CREDENCIAL_SELECCIONADA --> PERMISOS_VERIFICADOS : verificarPermisos()
-CREDENCIAL_SELECCIONADA --> ERROR_PERMISOS : permisosInsuficientes()
-ERROR_PERMISOS --> CREDENCIAL_SELECCIONADA : corregirPermisos()
+CREDENCIAL_SELECCIONADA --> PREFLIGHT : preflight()
+PREFLIGHT --> PRINCIPALES_RESUELTOS : identidadesRuntimeOk()
+PREFLIGHT --> BLOQUEADA : identidadOPermisosInsuficientes()
 
-PERMISOS_VERIFICADOS --> AGENTES_SELECCIONADOS : seleccionarAgentes()
-AGENTES_SELECCIONADOS --> EN_ANALISIS : iniciarAnalisis()
+BLOQUEADA --> CREDENCIAL_SELECCIONADA : corregirEntrada()
 
-EN_ANALISIS --> RECOPILANDO_DATOS : recopilarHistorialUso()
-RECOPILANDO_DATOS --> COMPARANDO_PERMISOS : compararPermisosVsUso()
-COMPARANDO_PERMISOS --> ANALISIS_COMPLETADO : generarRecomendaciones()
+PRINCIPALES_RESUELTOS --> SCAN_EN_CURSO : ejecutarScan()
+SCAN_EN_CURSO --> BASELINES_GENERADAS : guardarBaselines()
+SCAN_EN_CURSO --> FALLIDA : errorProveedor()
 
-EN_ANALISIS --> DATOS_INSUFICIENTES : datosInsuficientes()
-DATOS_INSUFICIENTES --> AGENTES_SELECCIONADOS : ajustarPeriodo()
-DATOS_INSUFICIENTES --> COMPLETADA : aceptarObservacion()
+BASELINES_GENERADAS --> REVISION_USUARIO : revisarBaseline()
+REVISION_USUARIO --> DRY_RUN : aplicarSinCambios()
+REVISION_USUARIO --> APLICACION_REAL : aplicarConAprobacion()
+REVISION_USUARIO --> COMPLETADA : noAplicar()
 
-ANALISIS_COMPLETADO --> RECOMENDACIONES_REVISADAS : revisarRecomendaciones()
-RECOMENDACIONES_REVISADAS --> REDUCCION_EN_CURSO : aplicarReduccion()
-RECOMENDACIONES_REVISADAS --> COMPLETADA : rechazarTodas()
+DRY_RUN --> COMPLETADA : registrarResultado()
+APLICACION_REAL --> APLICADA : proveedorActualizado()
+APLICACION_REAL --> FALLIDA : errorAplicacion()
 
-REDUCCION_EN_CURSO --> VERIFICANDO_FUNCIONAMIENTO : verificarAgentes()
-VERIFICANDO_FUNCIONAMIENTO --> COMPLETADA : confirmarResultados()
-VERIFICANDO_FUNCIONAMIENTO --> REVERTIENDO : errorEnAgente()
-REVERTIENDO --> ANALISIS_COMPLETADO : restaurarPermisos()
+APLICADA --> ROLLBACK_EN_CURSO : solicitarRollback()
+ROLLBACK_EN_CURSO --> REVERTIDA : restaurarSnapshot()
+ROLLBACK_EN_CURSO --> FALLIDA : errorRollback()
 
-INICIADA --> CANCELADA : cancelarMision()
-AGENTES_SELECCIONADOS --> CANCELADA : cancelarMision()
-ANALISIS_COMPLETADO --> CANCELADA : cancelarMision()
+APLICADA --> COMPLETADA : confirmarResultado()
+REVERTIDA --> COMPLETADA : confirmarResultado()
 
 COMPLETADA --> [*]
-CANCELADA --> [*]
+FALLIDA --> [*]
 
 @enduml

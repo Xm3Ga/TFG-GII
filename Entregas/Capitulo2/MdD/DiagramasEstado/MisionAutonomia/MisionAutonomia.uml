@@ -2,37 +2,23 @@
 
 [*] --> INICIADA
 
-INICIADA --> CREDENCIAL_SELECCIONADA : seleccionarCredencial()
-CREDENCIAL_SELECCIONADA --> PERMISOS_VERIFICADOS : verificarPermisos()
-CREDENCIAL_SELECCIONADA --> ERROR_PERMISOS : permisosInsuficientes()
-ERROR_PERMISOS --> CREDENCIAL_SELECCIONADA : corregirPermisos()
+INICIADA --> ALCANCE_SELECCIONADO : seleccionarAlcance()
+ALCANCE_SELECCIONADO --> ESCANEO_EN_CURSO : runAutonomyScan()
 
-PERMISOS_VERIFICADOS --> AGENTES_LISTADOS : listarAgentes()
+ESCANEO_EN_CURSO --> PERFILES_GENERADOS : guardarProfiles()
+ESCANEO_EN_CURSO --> SIN_DATOS : metadatosInsuficientes()
 
-AGENTES_LISTADOS --> CAPACIDADES_ANALIZADAS : analizarCapacidades()
-CAPACIDADES_ANALIZADAS --> RIESGO_EVALUADO : evaluarRiesgo()
+SIN_DATOS --> PERFILES_GENERADOS : marcarUnknown()
 
-RIESGO_EVALUADO --> NIVELES_PROPUESTOS : proponerNivelesAutonomia()
-RIESGO_EVALUADO --> RIESGO_AJUSTADO : ajustarClasificacion()
-RIESGO_AJUSTADO --> NIVELES_PROPUESTOS : reproponerNiveles()
+PERFILES_GENERADOS --> VALIDACIONES_PROPUESTAS : generarProposedValidations()
+VALIDACIONES_PROPUESTAS --> REVISION_USUARIO : mostrarEnSecurity()
+REVISION_USUARIO --> COMPLETADA : revisarEvidencia()
 
-NIVELES_PROPUESTOS --> NIVELES_ASIGNADOS : confirmarNiveles()
-
-NIVELES_ASIGNADOS --> CONFIGURANDO_SUPERVISION : configurarHITL()
-NIVELES_ASIGNADOS --> COMPLETADA : sinAgentesSupervisados()
-
-CONFIGURANDO_SUPERVISION --> REGLAS_DEFINIDAS : definirReglasSupervision()
-REGLAS_DEFINIDAS --> APROBADORES_ASIGNADOS : asignarAprobadores()
-APROBADORES_ASIGNADOS --> TIMEOUT_CONFIGURADO : configurarTimeout()
-TIMEOUT_CONFIGURADO --> SUPERVISION_ACTIVA : activarSupervision()
-
-SUPERVISION_ACTIVA --> COMPLETADA : confirmarConfiguracion()
-
-INICIADA --> CANCELADA : cancelarMision()
-AGENTES_LISTADOS --> CANCELADA : cancelarMision()
-NIVELES_PROPUESTOS --> CANCELADA : cancelarMision()
+note right of VALIDACIONES_PROPUESTAS
+No activa enforcement runtime.
+Solo propone checkpoints humanos.
+end note
 
 COMPLETADA --> [*]
-CANCELADA --> [*]
 
 @enduml

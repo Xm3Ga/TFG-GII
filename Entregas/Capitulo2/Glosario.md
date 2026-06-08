@@ -2,11 +2,11 @@
 
 ## Organización
 
-Empresa cliente que utiliza la plataforma Horizon para gestionar la seguridad de sus agentes de IA. Una organización puede tener múltiples usuarios, credenciales y agentes desplegados en distintos proveedores cloud.
+Empresa cliente que utiliza Theia Officer para gestionar la seguridad de sus agentes de IA. Una organización puede tener múltiples usuarios, credenciales y agentes desplegados en distintos proveedores cloud.
 
 ## Usuario
 
-Persona perteneciente a una organización que interactúa con la plataforma Horizon. Inicia misiones, proporciona credenciales, define configuraciones de seguridad y confirma la aplicación de cambios sobre sus agentes.
+Persona perteneciente a una organización que interactúa con Theia Officer. Inicia misiones, proporciona credenciales, define configuraciones de seguridad y confirma la aplicación de cambios sobre sus agentes.
 
 ## Proveedor Cloud
 
@@ -14,7 +14,7 @@ Servicio de computación en la nube que ofrece infraestructura para el despliegu
 
 ## Credencial
 
-Conjunto de datos de autenticación (claves de acceso, cuentas de servicio o tokens) que permiten a la plataforma Horizon conectarse con un proveedor cloud en nombre de la organización cliente. Las credenciales se almacenan cifradas y se utilizan para ejecutar operaciones sobre la infraestructura del cliente.
+Conjunto de datos de autenticación (claves de acceso, cuentas de servicio o tokens) que permiten a Theia Officer conectarse con un proveedor cloud en nombre de la organización cliente. Las credenciales se almacenan cifradas y se utilizan para ejecutar operaciones sobre la infraestructura del cliente.
 
 ## Agente de IA
 
@@ -34,7 +34,7 @@ Tipo de misión de seguridad que analiza los permisos asignados a los agentes de
 
 ## Misión de Autonomía
 
-Tipo de misión de seguridad que permite definir niveles de autonomía para los agentes de IA según el riesgo de las operaciones que realizan, y configurar mecanismos de supervisión humana (*human-in-the-loop*) para operaciones de alto riesgo.
+Tipo de misión de seguridad que clasifica agentes según señales de riesgo en sus metadatos y propone validaciones humanas (*human-in-the-loop*) para operaciones sensibles. En el MVP no bloquea acciones runtime.
 
 ## Guardarraíl
 
@@ -82,7 +82,7 @@ Clasificación que define el grado de independencia con el que un agente de IA p
 
 ## Política de Autonomía
 
-Configuración completa de autonomía para un agente de IA. Agrupa el nivel de autonomía asignado, las operaciones de riesgo identificadas, las reglas de supervisión definidas y los aprobadores asignados. Tiene un ciclo de vida propio: se crea como borrador, se activa cuando la configuración está completa, y puede suspenderse o revisarse periódicamente.
+Resultado de la misión de autonomía para un agente. En el código se materializa como `AgentAutonomyProfile`, con nivel de autonomía, confianza, evidencias, categorías de riesgo y validaciones humanas propuestas.
 
 ## Operación de Riesgo
 
@@ -99,15 +99,15 @@ Clasificación temática del tipo de impacto que una operación puede tener. Se 
 
 ## Regla de Supervisión
 
-Norma que define bajo qué condiciones una operación ejecutada por un agente de IA requiere aprobación humana antes de completarse. Cada regla especifica la operación de riesgo afectada, el usuario o rol que debe aprobar la solicitud, el tiempo máximo de espera (*timeout*) y el comportamiento por defecto en caso de que no se reciba respuesta dentro del plazo (denegar o encolar).
+Concepto de evolución futura para indicar bajo qué condiciones una operación ejecutada por un agente de IA requeriría aprobación humana antes de completarse. En el MVP no existe como regla ejecutable; la misión de autonomía solo propone validaciones humanas.
 
 ## Aprobación Humana
 
-Solicitud de autorización generada cuando un agente de IA con nivel de autonomía supervisado o restringido intenta ejecutar una operación sujeta a una regla de supervisión. La solicitud se envía al usuario aprobador designado, quien puede aceptar, rechazar o delegar la operación. Incluye la descripción de la acción solicitada, el agente que la solicita, la categoría de riesgo y la marca temporal.
+Checkpoint recomendado por la misión de autonomía para que una persona revise una acción sensible. En el MVP es una propuesta registrada en el perfil del agente, no una solicitud runtime obligatoria.
 
 ## CAIO
 
-*Chief AI Officer* virtual de la plataforma Horizon. Es un agente de IA que guía al usuario a través de las misiones mediante una interfaz conversacional. Analiza la infraestructura del cliente, propone configuraciones, ejecuta acciones sobre los proveedores cloud y registra todas las operaciones.
+*Chief AI Officer* virtual de Theia Officer. Es un agente de IA que guía al usuario a través de las misiones mediante una interfaz conversacional. Las acciones reales se ejecutan mediante endpoints del backend, validaciones y conectores cloud.
 
 ## Registro de Auditoría
 

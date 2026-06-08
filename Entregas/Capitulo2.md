@@ -1,30 +1,36 @@
 # 3. MODELO DEL DOMINIO
 
-En este capítulo se presenta el modelo del dominio del sistema de misiones de seguridad de la plataforma Horizon. El modelo del dominio es una representación de las clases conceptuales más importantes del mundo real en el contexto de la solución propuesta (Larman, 2004). Su objetivo es generar un vocabulario común entre el cliente, los usuarios y los desarrolladores, facilitando la comprensión de la estructura y dinámica del sistema.
+En este capítulo se presenta el modelo del dominio del sistema de misiones de seguridad de la plataforma Theia Officer. El modelo del dominio es una representación de las clases conceptuales más importantes del mundo real en el contexto de la solución propuesta (Larman, 2004). Su objetivo es generar un vocabulario común entre el cliente, los usuarios y los desarrolladores, facilitando la comprensión de la estructura y dinámica del sistema.
 
 El modelo está construido a partir de la información recogida en el Capítulo 1, del análisis del código de la plataforma y del estudio de las APIs de los proveedores cloud con los que el sistema debe integrarse.
 
-Este modelo, con casi total seguridad, cambiará en las siguientes entregas, dado que es muy complicado definir desde el principio tantos factores. Una vez que el código vaya tomando forma, se intentará seguir este modelo, y se harán los cambios necesarios para reflejar el estado actual del proyecto.
+El modelo se ha revisado para que refleje el código final del proyecto, manteniendo el alcance del TFG en las tres misiones de seguridad: guardarraíles, mínimo privilegio y autonomía.
 
 ## 3.1. Diagrama de clases del dominio
 
-El diagrama de clases del dominio representa las entidades principales del sistema y las relaciones entre ellas. A continuación se describe cada una de las clases conceptuales identificadas y su papel dentro del dominio.
+El diagrama de clases del dominio representa las entidades principales del sistema y las relaciones entre ellas. En esta versión no se describe qué es un diagrama de clases en general, sino cómo debe leerse este diagrama concreto.
 
 ![Modelo de Dominio](./Capitulo2/MdD/ModeloDominio/MdD.svg)
 
-Una `Organizacion` representa a la empresa cliente que utiliza la plataforma Horizon. Cada organización cuenta con uno o varios `Usuarios` que interactúan con el sistema, y posee las `Credenciales` necesarias para conectarse a los distintos `ProveedoresCloud` donde tiene desplegados sus `AgentesIA`.
+Una `Organizacion` representa a la empresa cliente que utiliza Theia Officer. Cada organización cuenta con `Usuarios`, `Credenciales` cloud cifradas y un inventario de `AgentesIA` descubiertos en distintos `ProveedoresCloud`. Esta separación coincide con el código, donde los modelos principales se filtran por `organization_id`.
 
 El concepto central de la plataforma es la `Mision`, un flujo de trabajo guiado por el `CAIO` (Chief AI Officer virtual) mediante el cual el usuario configura y aplica políticas de seguridad sobre sus agentes. Las misiones de seguridad se especializan en tres tipos:
 
-- **`MisionDeGuardarrail`**: permite configurar guardarraíles de seguridad (filtros de contenido, protección anti-jailbreak, detección de PII y bloqueo de temas) y aplicarlos a los agentes del cliente.
-- **`MisionDeMinimoPrivilegio`**: analiza los permisos asignados a cada agente y propone la reducción al conjunto mínimo necesario.
-- **`MisionDeAutonomia`**: evalúa las tareas de cada agente, asigna un nivel de autonomía y configura la supervisión humana para operaciones de alto riesgo.
+- **`MisionDeGuardarrail`**: permite configurar y aplicar controles de seguridad conversacional. En AWS se materializa mediante Bedrock Guardrails; en GCP, para el alcance implementado, mediante Dialogflow CX Security Settings.
+- **`MisionDeMinimoPrivilegio`**: resuelve la identidad runtime del agente, genera una baseline de permisos mínimos y permite aplicar cambios revisados con opción de rollback.
+- **`MisionDeAutonomia`**: analiza metadatos de los agentes, clasifica señales de riesgo y propone validaciones humanas. En el MVP no bloquea acciones runtime.
 
-Un `Guardarrail` es una política de seguridad que puede contener una o varias configuraciones: `PoliticaDeContenido` (filtros de contenido dañino), `PoliticaDeTemas` (bloqueo de temas sensibles), `PoliticaDePII` (detección y anonimización de información personal) y `PoliticaDeGrounding` (verificación de coherencia en las respuestas).
+Un `Guardarrail` es una política de seguridad que puede contener una o varias configuraciones: `PoliticaDeContenido` (filtros de contenido dañino), `PoliticaDeTemas` (bloqueo de temas sensibles), `PoliticaDePII` (detección y anonimización de información personal), `PoliticaDeGrounding` (verificación de coherencia en las respuestas) y otros controles soportados por el proveedor.
 
-En el ámbito del mínimo privilegio, cada `AgenteIA` tiene asignados múltiples `Permisos` y genera un `PerfilDeUso` a partir de los logs de actividad del proveedor cloud. La `MisionDeMinimoPrivilegio` produce un `AnalisisDePrivilegios` por agente, que a su vez genera `RecomendacionesDeReduccion` para cada permiso identificado como excesivo.
+En el ámbito del mínimo privilegio, el código final no se limita a una recomendación conceptual. La misión genera `LeastPrivilegeBaseline` por agente, con permisos actuales, permisos propuestos, permisos removibles, evidencias, confianza y snapshots de rollback cuando se aplican cambios.
 
-Para la gestión de la autonomía, cada agente puede ejecutar `OperacionesDeRiesgo`, clasificadas por `CategoriaDeRiesgo` (financiero, datos personales, infraestructura, comunicaciones). La `MisionDeAutonomia` genera una `PoliticaDeAutonomia` por agente, que asigna un `NivelDeAutonomia` (total, supervisado o restringido) y define `ReglasDeSupervision`. Cada regla especifica qué operaciones requieren una `AprobacionHumana` antes de ejecutarse, quién es el aprobador designado y el comportamiento en caso de timeout.
+Para la gestión de la autonomía, el código final genera `AgentAutonomyProfile`, no una política ejecutable con aprobaciones en tiempo real. Cada perfil almacena nivel de autonomía (`low`, `medium`, `high` o `unknown`), evidencias, categorías de riesgo y `proposed_validations`.
+
+| Misión | Implementación real | Resultado persistido o visible |
+| --- | --- | --- |
+| Guardarraíles | `missions.py`, `AWSConnector`, `GCPConnector` | Guardarrail/security setting aplicado, actualizado o fallido por agente. |
+| Mínimo privilegio | `least_privilege.py`, `LeastPrivilegeService` | `LeastPrivilegeScan`, `LeastPrivilegeBaseline`, `LeastPrivilegeApplyRun`. |
+| Autonomía | `autonomy.py`, `AutonomyService` | `AutonomyScanRun`, `AgentAutonomyProfile`, validaciones propuestas. |
 
 Todas las acciones ejecutadas durante las misiones generan un `RegistroDeAuditoria` que garantiza la trazabilidad del proceso.
 
@@ -46,7 +52,7 @@ Una vez verificados los permisos, la misión entra en fase de configuración (`E
 
 ![Diagrama de estados - Guardarraíl](./Capitulo2/MdD/DiagramasEstado/Guardarrail/Guardarrail.svg)
 
-Un guardarraíl comienza en estado `Configurado` cuando el usuario define sus políticas durante la misión de guardarraíles. El CAIO crea el guardarraíl en el proveedor cloud correspondiente (`Creado`). Una vez creado, puede ser asignado a uno o varios agentes (`Asignado`). Un guardarraíl asignado puede ser actualizado con nuevas políticas (`Actualizado`) o desasociado de un agente. También puede ser eliminado del proveedor cloud (`Eliminado`).
+Un guardarraíl comienza en estado `Configurado` cuando el usuario define sus políticas durante la misión. En AWS, el estado `Creado` corresponde a un Bedrock Guardrail; en GCP, para PII y retención, corresponde a un Security Setting. El estado `Asignado` indica que el recurso ya se ha vinculado al agente. Si el agente ya tenía protección, el flujo puede pasar por `Actualizado` en lugar de crear un recurso nuevo.
 
 ### Ciclo de vida de un Agente IA (postura de seguridad)
 
@@ -58,9 +64,9 @@ Un agente de IA es inicialmente `Descubierto` cuando la plataforma lo detecta me
 
 ![Diagrama de estados - Misión de Mínimo Privilegio](./Capitulo2/MdD/DiagramasEstado/MisionMinimoPrivilegio/MisionMinimoPrivilegio.svg)
 
-La misión de mínimo privilegio presenta un ciclo de vida más complejo que el genérico, dado que incorpora una fase de análisis de datos que puede fallar si no existe suficiente historial de uso. Tras la verificación de permisos y la selección de agentes, la misión entra en la fase de análisis (`EnAnalisis`), donde el CAIO recopila el historial de uso del agente desde los logs de actividad del proveedor (`RecopilandoDatos`), compara los permisos asignados con los efectivamente utilizados (`ComparandoPermisos`) y genera las recomendaciones (`AnalisisCompletado`).
+La misión de mínimo privilegio presenta un ciclo de vida más complejo que el genérico. En el código final primero se ejecuta un preflight para resolver identidades runtime; después se crea un scan que genera baselines por agente. Cada baseline puede quedar lista para revisión, bloqueada por falta de evidencia o aplicada tras aprobación explícita.
 
-Si los datos son insuficientes, la misión puede pasar a `DatosInsuficientes`, desde donde el usuario puede ajustar el período de análisis o aceptar la necesidad de un período de observación. Una vez generadas las recomendaciones y revisadas por el usuario, la misión entra en fase de reducción (`ReduccionEnCurso`). Tras aplicar los cambios, el CAIO verifica que los agentes siguen funcionando correctamente (`VerificandoFuncionamiento`). Si un agente falla, se ejecuta un *rollback* automático (`Revertiendo`) que restaura los permisos originales.
+Si los datos son insuficientes, la baseline queda bloqueada o con baja confianza. Una vez revisada, el usuario puede ejecutar un dry-run o aplicar los cambios. La aplicación real crea un `LeastPrivilegeApplyRun` y conserva un snapshot de rollback.
 
 ### Ciclo de vida de un Análisis de Privilegios
 
@@ -72,17 +78,17 @@ El análisis de privilegios como entidad de dominio tiene su propio ciclo de vid
 
 ![Diagrama de estados - Misión de Autonomía](./Capitulo2/MdD/DiagramasEstado/MisionAutonomia/MisionAutonomia.svg)
 
-La misión de autonomía incorpora varias fases que no existen en las otras misiones: el análisis de capacidades, la evaluación de riesgo y la configuración de supervisión humana. Tras verificar permisos y listar agentes, el CAIO analiza las herramientas y APIs de cada agente (`CapacidadesAnalizadas`), clasifica sus operaciones por categoría y nivel de riesgo (`RiesgoEvaluado`) y propone niveles de autonomía (`NivelesPropuestos`).
+La misión de autonomía incorpora varias fases que no existen en las otras misiones: selección de alcance, análisis de metadatos, clasificación de riesgo y generación de propuestas de validación humana. Tras listar agentes, el servicio aplica reglas deterministas sobre sus metadatos y crea un perfil de autonomía por agente.
 
-El usuario puede ajustar la clasificación de riesgo si no está de acuerdo con el análisis automático (`RiesgoAjustado`), lo que provoca una nueva propuesta de niveles. Una vez confirmados los niveles (`NivelesAsignados`), se entra en la fase de configuración de supervisión humana, donde se definen las reglas (`ReglasDefinidas`), se asignan los usuarios aprobadores (`AprobadoresAsignados`) y se configura el comportamiento de *timeout* (`TimeoutConfigurado`). Si ningún agente tiene nivel supervisado o restringido, la misión se completa sin esta fase.
+El resultado no activa reglas de supervisión en tiempo real. La salida real son niveles (`low`, `medium`, `high`, `unknown`), evidencias y `proposed_validations`, que el usuario revisa en la interfaz.
 
 ### Ciclo de vida de una Política de Autonomía
 
-![Diagrama de estados - Política de Autonomía](./Capitulo2/MdD/DiagramasEstado/PoliticaDeAutonomia/PoliticaDeAutonomia.svg)
+![Diagrama de estados - Perfil de Autonomía](./Capitulo2/MdD/DiagramasEstado/PoliticaDeAutonomia/PoliticaDeAutonomia.svg)
 
-La política de autonomía de un agente comienza como `Borrador` durante la misión. El CAIO evalúa las capacidades del agente (`CapacidadesEvaluadas`) y clasifica el riesgo de sus operaciones (`RiesgoClasificado`). Tras asignar un nivel de autonomía (`NivelAsignado`), se definen las reglas de supervisión si procede (`ReglasDefinidas`) y la política se `Activa`.
+En el código final este diagrama debe interpretarse como ciclo de vida de un perfil de autonomía, no como una política ejecutable. El perfil se genera durante el escaneo, se clasifica según riesgos detectados y queda disponible para revisión.
 
-Una política activa puede ser revisada periódicamente (`EnRevision`), lo que puede resultar en una reclasificación del riesgo si las capacidades del agente han cambiado. También puede ser `Suspendida` temporalmente (por ejemplo, durante un incidente de seguridad) y posteriormente reactivada o definitivamente `Desactivada`.
+Si cambian los metadatos del agente, la misión puede ejecutarse de nuevo y sustituir la clasificación anterior. La activación de aprobaciones runtime queda fuera del MVP.
 
 ## 3.3. Glosario
 
@@ -90,25 +96,34 @@ El glosario completo con las definiciones de todas las clases conceptuales del d
 
 ## 3.4. Requisitos suplementarios
 
-Los requisitos suplementarios, también conocidos como requisitos no funcionales, especifican propiedades del sistema que no se derivan directamente de los casos de uso pero que condicionan su diseño y desarrollo. Se han identificado los siguientes para las misiones de seguridad de Horizon:
+Los requisitos suplementarios, también conocidos como requisitos no funcionales, especifican propiedades del sistema que no se derivan directamente de los casos de uso pero que condicionan su diseño y desarrollo. Se han identificado los siguientes para las misiones de seguridad de Theia Officer:
 
-**Compatibilidad multi-proveedor**: el sistema debe ser capaz de aplicar políticas de seguridad sobre agentes desplegados en Amazon Web Services, Microsoft Azure y Google Cloud Platform. La arquitectura debe permitir la incorporación de nuevos proveedores sin modificar la lógica de las misiones.
-
-**Seguridad**: las credenciales de los proveedores cloud deben almacenarse cifradas. Todas las operaciones ejecutadas por el CAIO deben quedar registradas en el sistema de auditoría con la identidad del actor, el tipo de acción y la marca temporal. Las comunicaciones con las APIs de los proveedores deben realizarse sobre canales seguros (TLS).
-
-**Usabilidad**: la interacción con el sistema se realiza mediante una interfaz conversacional guiada. El CAIO debe orientar al usuario paso a paso, minimizando la necesidad de conocimientos técnicos avanzados para configurar las políticas de seguridad.
-
-**Rendimiento**: las operaciones de introspección (listado de agentes, verificación de permisos) deben completarse en un tiempo razonable, teniendo en cuenta la latencia inherente a las APIs de los proveedores cloud. Las operaciones de creación y aplicación de guardarraíles no deben superar los 30 segundos por agente.
-
-**Extensibilidad**: la arquitectura debe facilitar la incorporación de nuevos tipos de misiones de seguridad y nuevas políticas de guardarraíles. El sistema de conectores debe permitir extender el soporte a nuevos proveedores cloud mediante la implementación de una interfaz común.
-
-**Cumplimiento normativo**: el sistema debe facilitar el cumplimiento del Reglamento de Inteligencia Artificial de la UE (Parlamento Europeo, 2024) y de la norma ISO/IEC 42001:2023 (ISO, 2023) en lo relativo a supervisión humana y gestión de riesgos de sistemas de IA.
-
-**Trazabilidad**: debe existir trazabilidad completa entre las misiones ejecutadas, las políticas aplicadas, los agentes afectados y los registros de auditoría generados. El historial de cambios debe ser consultable en cualquier momento.
+| ID | Requisito suplementario | Requerimiento técnico |
+| --- | --- | --- |
+| RNF-01 | Compatibilidad multi-proveedor | Encapsular AWS, GCP y Azure mediante conectores/adaptadores, sin duplicar la lógica de misión en el frontend. |
+| RNF-02 | Seguridad de credenciales | Almacenar credenciales cifradas y no devolver secretos al frontend. |
+| RNF-03 | Usabilidad | Guiar cada misión por hitos: credencial, verificación, configuración/análisis, revisión y aplicación. |
+| RNF-04 | Trazabilidad | Registrar resultados de misión, eventos de mínimo privilegio y auditoría general. |
+| RNF-05 | Recuperación ante errores | Mantener rollback para cambios de mínimo privilegio y resultados por agente en guardarraíles. |
+| RNF-06 | Extensibilidad | Permitir nuevos controles y proveedores añadiendo conectores, adaptadores o tipos de misión. |
 
 # 4. DISCIPLINA DE REQUISITOS
 
 La disciplina de requisitos tiene como objetivo definir los límites del sistema y formalizar un acuerdo sobre lo que el sistema debe hacer (Jacobson et al., 1999). En este capítulo se identifican los actores que interactúan con el sistema, se definen y priorizan los casos de uso, se detallan los más representativos y se presenta el diagrama de contexto que describe el flujo general de la plataforma.
+
+En esta memoria se diferencia entre requisito y requerimiento: el requisito expresa la necesidad del cliente o del usuario; el requerimiento concreta cómo debe responder el sistema.
+
+| ID requisito | Necesidad del cliente | ID requerimiento | Implementación esperada |
+| --- | --- | --- | --- |
+| RQ-01 | Conectar proveedores cloud donde existen agentes de IA. | REQ-01 | Crear, validar y almacenar credenciales cifradas de AWS, GCP y Azure. |
+| RQ-02 | Tener un inventario centralizado de agentes. | REQ-02 | Sincronizar agentes mediante conectores y persistirlos como `Agent`. |
+| RQ-03 | Configurar protecciones conversacionales. | REQ-03 | Exponer misiones de guardarraíles con verificación de permisos y configuración por tipo de control. |
+| RQ-04 | Aplicar guardarraíles a agentes concretos. | REQ-04 | Crear/actualizar guardarrails o security settings y asociarlos a los agentes seleccionados. |
+| RQ-05 | Reducir permisos excesivos. | REQ-05 | Generar `LeastPrivilegeBaseline` con permisos actuales, propuestos, removibles y evidencias. |
+| RQ-06 | Evitar cambios IAM/RBAC sin revisión. | REQ-06 | Aplicar baselines solo con aprobación explícita o dry-run, registrando `LeastPrivilegeApplyRun`. |
+| RQ-07 | Revertir cambios de permisos si es necesario. | REQ-07 | Guardar snapshot de rollback y exponer reversión por apply run. |
+| RQ-08 | Identificar agentes con acciones autónomas de riesgo. | REQ-08 | Crear `AgentAutonomyProfile` mediante reglas sobre metadatos de agentes. |
+| RQ-09 | Proponer intervención humana para acciones sensibles. | REQ-09 | Guardar `proposed_validations` como recomendación revisable, sin enforcement runtime en el MVP. |
 
 ## 4.1. Actores
 
@@ -118,7 +133,7 @@ Se han identificado tres actores que interactúan con el sistema de misiones de 
 
 ### Usuario
 
-Persona de la organización cliente que utiliza la plataforma Horizon para gestionar la seguridad de sus agentes de IA. Es el actor principal del sistema. Inicia las misiones, proporciona la información solicitada por el CAIO (credenciales, configuraciones, selección de agentes) y confirma la aplicación de los cambios propuestos.
+Persona de la organización cliente que utiliza Theia Officer para gestionar la seguridad de sus agentes de IA. Es el actor principal del sistema. Inicia las misiones, proporciona la información solicitada por el CAIO (credenciales, configuraciones, selección de agentes) y confirma la aplicación de los cambios propuestos.
 
 ### CAIO
 
@@ -147,8 +162,8 @@ A partir del modelo del dominio y los actores identificados, se han definido onc
 | CdU-07 | Aplicar guardarraíl a agentes | El usuario selecciona los agentes a los que se aplicará un guardarraíl previamente configurado. |
 | CdU-08 | Analizar privilegios de agentes | El usuario solicita un análisis de los permisos asignados a sus agentes para identificar excesos de privilegios. |
 | CdU-09 | Aplicar reducción de privilegios | El usuario revisa y confirma la propuesta de reducción de permisos generada por el CAIO. |
-| CdU-10 | Definir niveles de autonomía | El usuario define los niveles de autonomía para sus agentes según el riesgo de las operaciones que realizan. |
-| CdU-11 | Configurar supervisión humana | El usuario configura qué operaciones de alto riesgo requieren aprobación humana antes de ser ejecutadas por los agentes. |
+| CdU-10 | Clasificar autonomía de agentes | El usuario ejecuta un análisis que clasifica agentes según señales de riesgo en sus metadatos. |
+| CdU-11 | Revisar validaciones humanas propuestas | El usuario revisa los checkpoints de validación humana sugeridos por la misión de autonomía. |
 
 ### Casos de uso del Proveedor Cloud
 
@@ -169,12 +184,12 @@ La priorización de los casos de uso se ha realizado considerando aspectos técn
 | CdU-05 | Configurar detección de PII | Usuario | Alta |
 | CdU-06 | Configurar bloqueo de temas | Usuario | Media |
 | CdU-07 | Aplicar guardarraíl a agentes | Usuario | Alta |
-| CdU-08 | Analizar privilegios de agentes | Usuario | Media |
+| CdU-08 | Analizar privilegios de agentes | Usuario | Alta |
 | CdU-09 | Aplicar reducción de privilegios | Usuario | Media |
-| CdU-10 | Definir niveles de autonomía | Usuario | Media |
-| CdU-11 | Configurar supervisión humana | Usuario | Media |
+| CdU-10 | Clasificar autonomía de agentes | Usuario | Media |
+| CdU-11 | Revisar validaciones humanas propuestas | Usuario | Media |
 
-Los casos de uso de prioridad alta se desarrollarán en las primeras iteraciones por ser prerequisitos funcionales (CdU-01, CdU-02) o por constituir el núcleo de la primera misión de seguridad (CdU-03 a CdU-05, CdU-07). Los de prioridad media se abordarán en iteraciones posteriores.
+Los casos de uso de prioridad alta se desarrollan primero por ser prerrequisitos funcionales (CdU-01, CdU-02), por constituir el núcleo de guardarraíles (CdU-03 a CdU-05, CdU-07) o por existir ya como servicio específico en el código final (CdU-08).
 
 ## 4.4. Detalle de casos de uso
 
@@ -249,38 +264,36 @@ Este caso de uso es representativo de la misión de mínimo privilegio. A difere
 
 **Precondiciones**: el usuario ha conectado un proveedor cloud (CdU-01) y descubierto sus agentes (CdU-02). La credencial tiene permisos de lectura sobre las políticas IAM y los logs de actividad del proveedor (CloudTrail en AWS, Activity Log en Azure, Cloud Audit Logs en GCP).
 
-**Postcondiciones**: se ha generado un análisis de privilegios para cada agente seleccionado, con un informe que clasifica los permisos en tres categorías (utilizados, no utilizados, de alto riesgo no utilizados) y produce recomendaciones de reducción concretas.
+**Postcondiciones**: se ha generado una baseline de mínimo privilegio para cada agente seleccionado, con permisos actuales, permisos propuestos, permisos removibles, evidencias y nivel de confianza.
 
 **Flujo básico**:
 
 1. El usuario inicia la misión de mínimo privilegio desde el catálogo de misiones.
-2. El CAIO solicita la selección de credencial y la verifica, comprobando acceso a políticas IAM y logs de actividad del proveedor.
-3. El CAIO lista los agentes descubiertos con su rol IAM asociado y número de permisos asignados.
+2. El CAIO solicita la selección de credencial y ejecuta un preflight para comprobar que puede resolver la identidad runtime del agente.
+3. El CAIO lista los agentes descubiertos con su identidad runtime cuando está disponible.
 4. El usuario selecciona los agentes que desea analizar.
-5. El usuario define el período de análisis (últimos 30, 60 o 90 días).
-6. El CAIO recopila el perfil de uso de cada agente desde los logs de actividad del proveedor, identificando qué permisos ha utilizado durante el período.
-7. El CAIO compara permisos asignados con el perfil de uso, clasificando cada permiso como utilizado, no utilizado o de alto riesgo no utilizado.
-8. El CAIO genera recomendaciones de reducción: para cada permiso excesivo, indica la justificación, el nivel de riesgo y el impacto estimado de su eliminación.
-9. El CAIO presenta el informe completo al usuario, organizado por agente y ordenado por nivel de riesgo.
+5. El CAIO recopila permisos actuales y evidencias disponibles en el proveedor.
+6. El CAIO genera una `LeastPrivilegeBaseline` por agente.
+7. La interfaz muestra permisos actuales, propuestos y removibles.
+8. El usuario revisa la baseline antes de cualquier aplicación.
 
 **Flujo alternativo A — Permisos insuficientes (paso 2)**:
 
-2a. La credencial no tiene acceso a políticas IAM o logs de actividad.
-2b. El CAIO identifica los permisos faltantes según el proveedor (por ejemplo, `iam:GetPolicy` y `cloudtrail:LookupEvents` para AWS).
+2a. La credencial no tiene acceso suficiente para resolver identidades o consultar permisos.
+2b. El CAIO identifica el problema y bloquea la generación/aplicación de la baseline.
 2c. El CAIO proporciona instrucciones específicas para configurarlos.
 
 **Flujo alternativo B — Datos de uso insuficientes (paso 6)**:
 
-6a. Los logs no contienen suficiente información para el período solicitado.
-6b. El CAIO ofrece dos opciones: ampliar el rango temporal o activar un período de observación monitorizada.
-6c. El usuario elige la opción deseada.
+6a. Las evidencias no son suficientes para proponer cambios con confianza.
+6b. La baseline queda bloqueada o con baja confianza, evitando aplicar cambios inseguros.
 
 **Flujo alternativo C — Agente sin rol IAM explícito (paso 3)**:
 
 3a. El agente hereda permisos del servicio sin rol IAM dedicado.
 3b. El CAIO recomienda crear un rol IAM dedicado antes de proceder.
 
-### CdU-10: Definir niveles de autonomía
+### CdU-10: Clasificar autonomía de agentes
 
 Este caso de uso es representativo de la misión de autonomía. A diferencia de las otras misiones, incorpora un análisis de capacidades y una evaluación de riesgo que no depende de datos históricos sino de la configuración actual del agente.
 
@@ -288,26 +301,23 @@ Este caso de uso es representativo de la misión de autonomía. A diferencia de 
 
 **Precondiciones**: el usuario ha conectado un proveedor cloud (CdU-01) y descubierto sus agentes (CdU-02). La credencial tiene permisos para consultar la configuración de los agentes.
 
-**Postcondiciones**: se ha creado una política de autonomía para cada agente seleccionado, con su nivel asignado basado en el análisis de riesgo de sus operaciones.
+**Postcondiciones**: se ha creado un perfil de autonomía por agente, con nivel, confianza, evidencias y validaciones humanas propuestas.
 
 **Flujo básico**:
 
-1. El usuario inicia la misión de definición de autonomía desde el catálogo.
-2. El CAIO solicita la selección de credencial y la verifica.
-3. El CAIO lista los agentes con sus herramientas y APIs asignadas.
-4. El CAIO analiza las capacidades de cada agente, identificando las operaciones que puede ejecutar.
-5. El CAIO clasifica cada operación por categoría de riesgo (financiero, datos personales, infraestructura, comunicaciones) y nivel (bajo, medio, alto, crítico).
-6. El CAIO propone un nivel de autonomía por agente: total (solo operaciones de bajo riesgo), supervisado (alguna operación de riesgo medio o alto) o restringido (operaciones de riesgo crítico).
-7. El usuario revisa las propuestas y puede aceptar, modificar el nivel o reclasificar operaciones.
-8. Si el usuario reclasifica operaciones, el CAIO recalcula las recomendaciones.
-9. El CAIO genera una política de autonomía para cada agente con el nivel confirmado.
-10. El CAIO muestra el resumen con todos los agentes y sus niveles asignados.
+1. El usuario inicia la misión de autonomía desde el catálogo.
+2. El sistema selecciona agentes dentro del alcance.
+3. `AutonomyService` analiza metadatos de cada agente mediante reglas deterministas.
+4. El sistema detecta categorías de riesgo como dinero, escritura de datos, identidad, datos sensibles, comunicaciones externas, producción o ejecución de código.
+5. El sistema asigna un nivel `low`, `medium`, `high` o `unknown`.
+6. El sistema guarda un `AgentAutonomyProfile` por agente.
+7. El usuario revisa el resultado y las validaciones propuestas.
 
 **Flujo alternativo A — Agente sin herramientas asignadas (paso 4)**:
 
 4a. Un agente no tiene herramientas ni APIs (solo genera texto).
-4b. El CAIO lo clasifica automáticamente como riesgo bajo y recomienda autonomía total.
-4c. El usuario puede aceptar o asignar un nivel más restrictivo.
+4b. El sistema lo clasifica con menor riesgo o como `unknown`, según la evidencia disponible.
+4c. El usuario revisa la evidencia antes de tomar decisiones operativas.
 
 ## 4.5. Diagrama de contexto
 
@@ -319,15 +329,15 @@ El flujo comienza con la conexión de un proveedor cloud y el descubrimiento de 
 
 La **misión de guardarraíles** sigue un flujo de cuatro etapas: selección de credencial, verificación de permisos IAM, configuración del guardarraíl (según el tipo: contenido, jailbreak, PII o temas) y selección de agentes para la aplicación.
 
-La **misión de mínimo privilegio** tiene un flujo de seis etapas: selección de credencial, verificación de acceso a logs e IAM, selección de agentes a analizar, análisis de privilegios (recopilación del historial de uso y comparación con permisos asignados), revisión de las recomendaciones de reducción generadas, y aplicación de la reducción con verificación de funcionamiento.
+La **misión de mínimo privilegio** tiene un flujo de cinco etapas: selección de credencial, preflight para resolver identidades runtime, generación de baselines, revisión de permisos propuestos y aplicación aprobada o dry-run con snapshot de rollback.
 
-La **misión de autonomía** tiene un flujo de seis etapas: selección de credencial, verificación de acceso a la configuración de agentes, análisis de las herramientas y operaciones de cada agente, evaluación y clasificación del riesgo de cada operación, asignación de niveles de autonomía (total, supervisado, restringido), y configuración de la supervisión humana con definición de reglas, aprobadores y timeouts.
+La **misión de autonomía** tiene un flujo de tres etapas: selección de alcance, análisis de metadatos y generación de perfiles con validaciones humanas propuestas. No configura reglas runtime de aprobación en el MVP.
 
 Al completar cualquier misión, el sistema regresa al estado de agentes descubiertos, desde donde el usuario puede iniciar nuevas misiones o revisar el estado de seguridad de sus agentes.
 
 ## 4.6. Prototipos de interfaz
 
-Los prototipos de la interfaz de usuario se basan en la implementación existente del frontend de la plataforma Horizon, desarrollado con Next.js. La interacción principal se realiza a través de una interfaz conversacional en la que el CAIO guía al usuario por las distintas etapas de cada misión.
+Los prototipos de la interfaz de usuario se basan en la implementación existente del frontend de Theia Officer, desarrollado con Next.js. La interacción principal se realiza a través de una interfaz conversacional en la que el CAIO guía al usuario por las distintas etapas de cada misión.
 
 ### Catálogo de misiones
 
@@ -351,8 +361,8 @@ El panel de contexto muestra los hitos de la misión (credencial, permisos, conf
 | CdU-07: Aplicar guardarraíl | Interfaz conversacional (paso final de la misión) |
 | CdU-08: Analizar privilegios | Catálogo de misiones → Misión de mínimo privilegio |
 | CdU-09: Aplicar reducción | Interfaz conversacional (confirmación tras análisis) |
-| CdU-10: Definir autonomía | Catálogo de misiones → Misión de autonomía |
-| CdU-11: Configurar supervisión | Interfaz conversacional (dentro de misión de autonomía) |
+| CdU-10: Clasificar autonomía | Catálogo de misiones → Misión de autonomía |
+| CdU-11: Revisar validaciones propuestas | Página de seguridad y resultado de la misión de autonomía |
 
 # Referencias bibliográficas
 

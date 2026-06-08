@@ -1,36 +1,36 @@
 @startuml
 actor Usuario
 participant "VistaMisionConversacional" as Vista
-participant "SecurityRouter" as SecurityAPI
-participant "SecurityScanService" as ScanService
+participant "AutonomyRouter" as Router
+participant "AutonomyService" as Service
 participant "AgentRepository" as AgentRepo
-participant "LLMService" as LLM
-participant "RepositorioPoliticasAutonomia" as PolicyRepo
-participant "AuditLog" as Audit
+participant "AutonomyRepository" as Repo
+participant "VistaSeguridad" as SecurityView
 
 Usuario -> Vista : inicia mision de autonomia
-Vista -> SecurityAPI : GET /security/status
-SecurityAPI -> ScanService : get_status()
-ScanService -> AgentRepo : obtener agentes
-AgentRepo --> ScanService : inventario
-ScanService --> Vista : estado de riesgo
+Vista -> Router : POST /autonomy/scans
+Router -> Service : run_scan()
+Service -> AgentRepo : obtener agentes descubiertos
+AgentRepo --> Service : agentes y metadatos
 
-Usuario -> Vista : solicita evaluacion
-Vista -> SecurityAPI : POST /security/scan
-SecurityAPI -> ScanService : scan_all()
-loop por cada agente
-  ScanService -> AgentRepo : cargar agente
-  ScanService -> LLM : analizar capacidades y riesgo
-  LLM --> ScanService : hallazgos y recomendaciones
+loop por agente
+  Service -> Service : aplicar reglas de riesgo
+  Service -> Repo : guardar AgentAutonomyProfile
 end
-ScanService --> SecurityAPI : resultados
-SecurityAPI -> Audit : security_scan_completed
-SecurityAPI --> Vista : riesgos por agente
 
-Usuario -> Vista : acepta niveles propuestos
-Vista -> PolicyRepo : guardar politica de autonomia
-PolicyRepo --> Vista : politica activa
-Vista -> Audit : autonomia_configurada
-Vista --> Usuario : resumen de supervisiones
+Service -> Repo : guardar AutonomyScanRun
+Service --> Router : perfiles generados
+Router --> Vista : niveles y validaciones propuestas
+
+Usuario -> SecurityView : revisa evidencia
+SecurityView -> Router : GET /autonomy/profiles
+Router -> Repo : listar perfiles
+Repo --> Router : perfiles
+Router --> SecurityView : proposed_validations
+
+note over Service,SecurityView
+La mision propone validaciones humanas.
+No bloquea acciones runtime en el MVP.
+end note
 
 @enduml

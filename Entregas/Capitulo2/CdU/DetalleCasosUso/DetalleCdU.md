@@ -4,7 +4,7 @@
 
 **Actores**: Usuario (principal), Proveedor Cloud (secundario).
 
-**Precondiciones**: el usuario tiene una cuenta activa en la plataforma Horizon y dispone de credenciales válidas para un proveedor cloud.
+**Precondiciones**: el usuario tiene una cuenta activa en Theia Officer y dispone de credenciales válidas para un proveedor cloud.
 
 **Postcondiciones**: la plataforma ha verificado la conectividad con el proveedor cloud y ha almacenado las credenciales de forma segura.
 
@@ -182,7 +182,7 @@
 
 **Precondiciones**: el usuario ha conectado un proveedor cloud (CdU-01) y descubierto sus agentes (CdU-02). La credencial tiene permisos de lectura sobre las políticas IAM de los agentes y sobre los logs de actividad del proveedor (CloudTrail en AWS, Activity Log en Azure, Cloud Audit Logs en GCP).
 
-**Postcondiciones**: se ha generado un análisis de privilegios para cada agente seleccionado, con un informe detallado que identifica los permisos excesivos y produce recomendaciones de reducción concretas.
+**Postcondiciones**: se ha generado una baseline de mínimo privilegio por agente seleccionado, con permisos actuales, permisos propuestos, permisos removibles, evidencias y nivel de confianza.
 
 **Flujo básico**:
 
@@ -192,14 +192,10 @@
 4. El CAIO verifica los permisos de la credencial. Comprueba que dispone de acceso para leer las políticas IAM de los agentes, consultar los logs de actividad y, opcionalmente, modificar políticas de permisos.
 5. El CAIO lista los agentes descubiertos, mostrando para cada uno: nombre, identificador, rol IAM asociado y número de permisos asignados.
 6. El usuario selecciona los agentes que desea analizar.
-7. El CAIO solicita al usuario que defina el período de análisis: el rango temporal sobre el que se consultará el historial de uso (por ejemplo, últimos 30, 60 o 90 días).
-8. El CAIO inicia la recopilación del perfil de uso de cada agente seleccionado, consultando los logs de actividad del proveedor cloud para identificar qué permisos ha utilizado cada agente durante el período indicado.
-9. El CAIO compara los permisos asignados a cada agente con su perfil de uso, identificando tres categorías:
-   - **Permisos utilizados**: acciones que el agente ha ejecutado durante el período.
-   - **Permisos no utilizados**: acciones asignadas pero nunca ejecutadas.
-   - **Permisos de alto riesgo no utilizados**: permisos con impacto potencial significativo (escritura en bases de datos, procesamiento de pagos, eliminación de recursos) que el agente no ha necesitado.
-10. El CAIO genera un informe de análisis para cada agente con la lista de recomendaciones de reducción. Cada recomendación incluye: el permiso que se recomienda eliminar, la justificación (no utilizado en X días), el nivel de riesgo del permiso y el impacto estimado de su eliminación.
-11. El CAIO presenta el informe completo al usuario, organizado por agente y ordenado por nivel de riesgo de los permisos excesivos.
+7. El CAIO ejecuta el preflight para resolver la identidad runtime de cada agente.
+8. El CAIO recopila permisos actuales y evidencias disponibles según el proveedor.
+9. El CAIO genera una `LeastPrivilegeBaseline` por agente, identificando permisos actuales, permisos propuestos y permisos removibles.
+10. El CAIO presenta las baselines al usuario para revisión antes de cualquier cambio.
 
 **Flujo alternativo A — Permisos insuficientes (paso 4)**:
 
@@ -272,88 +268,48 @@
 
 ---
 
-## CdU-10: Definir niveles de autonomía
+## CdU-10: Clasificar autonomía de agentes
 
 **Actores**: Usuario (principal), CAIO (sistema), Proveedor Cloud (secundario).
 
-**Precondiciones**: el usuario ha conectado un proveedor cloud (CdU-01) y descubierto sus agentes (CdU-02). La credencial tiene permisos para consultar la configuración de los agentes (herramientas asignadas, APIs accesibles).
+**Precondiciones**: el usuario ha conectado un proveedor cloud (CdU-01) y descubierto sus agentes (CdU-02).
 
-**Postcondiciones**: se ha creado una política de autonomía para cada agente seleccionado, con su nivel de autonomía asignado basado en el análisis de riesgo de sus operaciones.
+**Postcondiciones**: se ha creado un `AgentAutonomyProfile` por agente, con nivel de autonomía, confianza, evidencias, categorías de riesgo y validaciones humanas propuestas.
 
 **Flujo básico**:
 
-1. El usuario inicia la misión de definición de autonomía desde el catálogo de misiones.
-2. El CAIO solicita al usuario que seleccione la credencial del proveedor cloud.
-3. El usuario selecciona la credencial.
-4. El CAIO verifica los permisos de la credencial para consultar la configuración de los agentes.
-5. El CAIO lista los agentes descubiertos, mostrando para cada uno: nombre, identificador, descripción y herramientas o APIs asignadas.
-6. El CAIO analiza las capacidades de cada agente. Para cada herramienta o API que el agente tiene acceso, identifica las operaciones que puede ejecutar.
-7. El CAIO clasifica cada operación en una categoría de riesgo:
-   - **Financiero**: operaciones que implican transacciones, facturación o gestión de costes.
-   - **Datos personales**: operaciones que acceden, modifican o eliminan PII u otros datos regulados.
-   - **Infraestructura**: operaciones que modifican configuraciones de sistemas, despliegan recursos o alteran la infraestructura.
-   - **Comunicaciones**: operaciones que envían mensajes, notificaciones o comunicaciones externas.
-8. El CAIO asigna un nivel de riesgo a cada operación (bajo, medio, alto, crítico) y presenta al usuario un informe de riesgo por agente. El informe muestra para cada agente: sus operaciones, la categoría y nivel de riesgo de cada una, y el nivel de autonomía recomendado.
-9. El CAIO propone un nivel de autonomía para cada agente basado en el análisis:
-   - **Total**: si todas las operaciones del agente son de riesgo bajo.
-   - **Supervisado**: si alguna operación es de riesgo medio o alto.
-   - **Restringido**: si alguna operación es de riesgo crítico o si el agente está en fase de pruebas.
-10. El usuario revisa las propuestas y puede:
-    - Aceptar la recomendación del CAIO.
-    - Modificar el nivel de autonomía propuesto (subir o bajar).
-    - Reclasificar el nivel de riesgo de operaciones específicas si no está de acuerdo con la clasificación automática.
-11. El CAIO registra las decisiones del usuario. Si el usuario ha reclasificado operaciones, el CAIO recalcula las recomendaciones de nivel de autonomía.
-12. El CAIO genera una política de autonomía para cada agente con el nivel asignado confirmado.
-13. El CAIO muestra un resumen con todos los agentes y sus niveles de autonomía asignados.
+1. El usuario inicia la misión `classify-by-autonomy` desde el catálogo.
+2. El CAIO selecciona los agentes dentro del alcance de la misión.
+3. `AutonomyService` analiza metadatos de cada agente mediante reglas deterministas.
+4. El sistema detecta señales de riesgo: dinero, escritura de datos, identidad, datos sensibles, comunicaciones externas, cambios en producción o ejecución de código.
+5. El sistema asigna un nivel `low`, `medium`, `high` o `unknown`.
+6. El sistema guarda el perfil de autonomía del agente.
+7. El CAIO muestra el resumen de perfiles y validaciones propuestas.
 
-**Flujo alternativo A — Permisos insuficientes (paso 4)**:
+**Flujo alternativo A — Metadatos insuficientes (paso 3)**:
 
-4a. La credencial no tiene acceso para consultar la configuración de los agentes.
-4b. El CAIO informa de los permisos necesarios según el proveedor.
-4c. El usuario corrige y reintenta.
-
-**Flujo alternativo B — Agente sin herramientas asignadas (paso 6)**:
-
-6a. Un agente no tiene herramientas ni APIs asignadas (solo responde con texto).
-6b. El CAIO clasifica automáticamente al agente como de riesgo bajo y recomienda autonomía total.
-6c. El usuario puede aceptar o asignar un nivel más restrictivo.
+3a. El agente no tiene metadatos suficientes para clasificar capacidades.
+3b. El sistema asigna nivel `unknown` o confianza baja.
+3c. El usuario revisa manualmente la evidencia disponible.
 
 ---
 
-## CdU-11: Configurar supervisión humana
+## CdU-11: Revisar validaciones humanas propuestas
 
 **Actores**: Usuario (principal), CAIO (sistema).
 
-**Precondiciones**: se ha asignado el nivel de autonomía "supervisado" o "restringido" a al menos un agente (CdU-10).
+**Precondiciones**: existe al menos un perfil de autonomía generado por CdU-10.
 
-**Postcondiciones**: se han definido las reglas de supervisión humana para cada agente con nivel supervisado o restringido, incluyendo las operaciones que requieren aprobación, los usuarios aprobadores designados y el comportamiento en caso de *timeout*.
+**Postcondiciones**: el usuario ha revisado las validaciones humanas propuestas para los agentes clasificados. En el MVP no se activan reglas de aprobación runtime.
 
 **Flujo básico**:
 
-1. El CAIO presenta al usuario los agentes que tienen nivel de autonomía supervisado o restringido, con sus operaciones de riesgo identificadas.
-2. El usuario selecciona un agente para configurar su supervisión.
-3. El CAIO muestra las operaciones de riesgo del agente seleccionado, organizadas por categoría y nivel de riesgo. Para cada operación indica si requiere supervisión (basado en el nivel de autonomía) y el tipo de supervisión recomendada.
-4. Para agentes con nivel supervisado, el usuario define qué operaciones concretas requieren aprobación humana. El CAIO preselecciona las operaciones de riesgo alto y crítico, pero el usuario puede añadir o quitar operaciones de la lista.
-5. Para agentes con nivel restringido, todas las operaciones requieren aprobación (el CAIO lo configura automáticamente).
-6. Para cada operación que requiere aprobación, el CAIO solicita:
-   a. **Aprobador**: el usuario o rol de la organización que recibirá las solicitudes de aprobación. Puede ser un usuario específico, un equipo o un rol (por ejemplo, "administrador de seguridad").
-   b. **Timeout**: el tiempo máximo de espera para recibir la aprobación (por ejemplo, 1 hora, 4 horas, 24 horas).
-   c. **Comportamiento por defecto**: qué ocurre si el aprobador no responde dentro del *timeout*: denegar la operación (opción conservadora) o encolar la operación para revisión posterior.
-7. El usuario configura estos parámetros para cada regla de supervisión.
-8. El CAIO muestra un resumen de todas las reglas de supervisión configuradas para el agente: operación, aprobador, timeout y comportamiento por defecto.
-9. El usuario confirma la configuración.
-10. Se repiten los pasos 2-9 para cada agente con supervisión pendiente de configurar.
-11. El CAIO activa las políticas de autonomía con las reglas de supervisión definidas y muestra un resumen global.
+1. El usuario abre el resultado de la misión o la página de seguridad.
+2. El sistema muestra los perfiles de autonomía generados.
+3. Para cada agente, el usuario consulta nivel, confianza, evidencias y riesgos detectados.
+4. El sistema muestra la lista `proposed_validations`.
+5. El usuario revisa esas propuestas como guía para controles operativos posteriores.
 
-**Flujo alternativo A — Sin usuarios aprobadores disponibles (paso 6a)**:
+**Límite del caso de uso**:
 
-6a-i. La organización solo tiene un usuario registrado en la plataforma.
-6a-ii. El CAIO advierte de que el aprobador sería el mismo usuario que opera los agentes, lo que reduce la efectividad de la supervisión.
-6a-iii. El CAIO recomienda registrar usuarios adicionales antes de activar la supervisión.
-
-**Flujo alternativo B — Modificación posterior (tras paso 11)**:
-
-11a. El usuario desea modificar una regla de supervisión existente.
-11b. El CAIO permite seleccionar el agente y la regla a modificar.
-11c. El usuario realiza los cambios y confirma.
-11d. El CAIO actualiza la política de autonomía del agente.
+El caso de uso no crea aprobadores, timeouts ni reglas obligatorias. Es una revisión de propuestas, coherente con el estado actual del código.
