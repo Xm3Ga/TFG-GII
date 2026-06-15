@@ -1,4 +1,4 @@
-# Diseño e implementación de misiones de seguridad para agentes de inteligencia artificial en una plataforma B2B de gobernanza multi-proveedor
+# Desarrollo de flujos de seguridad agéntica para aplicación de gobernanza de IA
 
 ## Modelo del dominio
 
