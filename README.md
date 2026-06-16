@@ -38,8 +38,6 @@ Archivo fuente del diagrama: [CdU01MVC.uml](Entregas/Capitulo3/Analisis/CasosUso
 
 ### Diseño
 
-![Clases de diseño](Entregas/Capitulo3/Diseno/ClasesDiseno/ClasesDiseno.svg)
-
 ![Arquitectura general](Entregas/Capitulo3/Diseno/Arquitectura/Arquitectura.svg)
 
 ## CdU-04: Configurar protección anti-jailbreak
