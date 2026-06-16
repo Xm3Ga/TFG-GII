@@ -26,25 +26,35 @@
 
 ### Detalle del caso de uso
 
+[Detalle completo del caso de uso](Entregas/Capitulo2/CdU/DetalleCasosUso/DetalleCdU.md)
+
 ### Interfaz de usuario propuesta
 
 ### Análisis MVC
 
-![Clases de análisis](Entregas/Capitulo3/Analisis/ClasesAnalisis/ClasesAnalisis.svg)
+![Diagrama MVC CdU-01](Entregas/Capitulo3/Analisis/CasosUso/CdU01MVC.svg)
+
+Archivo fuente del diagrama: [CdU01MVC.uml](Entregas/Capitulo3/Analisis/CasosUso/CdU01MVC.uml).
 
 ### Diseño
 
 ![Clases de diseño](Entregas/Capitulo3/Diseno/ClasesDiseno/ClasesDiseno.svg)
 
+![Arquitectura general](Entregas/Capitulo3/Diseno/Arquitectura/Arquitectura.svg)
+
 ## CdU-04: Configurar protección anti-jailbreak
 
 ### Detalle del caso de uso
+
+[Detalle completo del caso de uso](Entregas/Capitulo2/CdU/DetalleCasosUso/DetalleCdU.md)
 
 ### Interfaz de usuario propuesta
 
 ### Análisis MVC
 
-![Secuencia de guardarraíles](Entregas/Capitulo3/Analisis/CasosUso/GuardarrailesSecuencia.svg)
+![Diagrama MVC CdU-04](Entregas/Capitulo3/Analisis/CasosUso/CdU04MVC.svg)
+
+Archivo fuente del diagrama: [CdU04MVC.uml](Entregas/Capitulo3/Analisis/CasosUso/CdU04MVC.uml).
 
 ### Diseño
 

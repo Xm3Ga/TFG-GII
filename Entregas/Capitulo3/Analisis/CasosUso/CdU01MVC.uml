@@ -1,0 +1,54 @@
+@startuml
+left to right direction
+
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+
+class "Usuario externo" as ActorUsuario <<actor>>
+
+package "Vista" {
+  class "VistaCatalogoMisiones" as VCatalogo
+  class "VistaConexionProveedor" as VConexion
+  class "VistaCredenciales" as VCredenciales
+}
+
+package "Controlador" {
+  class "ControladorMision" as CMision
+  class "ControladorCredenciales" as CCredenciales
+  class "ConnectorFactory" as CFactory
+  class "ProveedorCloudConnector" as CProveedor
+  class "ControladorAuditoria" as CAuditoria
+}
+
+package "Modelo" {
+  class "Organizacion" as MOrganizacion
+  class "Usuario" as MUsuario
+  class "Credencial" as MCredencial
+  class "ProveedorCloud" as MProveedor
+  class "ResultadoValidacion" as MResultado
+  class "RegistroDeAuditoria" as MAuditoria
+}
+
+ActorUsuario --> VCatalogo : inicia CdU-01
+VCatalogo --> VConexion : selecciona proveedor
+VConexion --> VCredenciales : solicita credenciales
+VCredenciales --> CMision : iniciar conexion
+CMision --> CCredenciales : coordina validacion
+
+CCredenciales --> CFactory : crear conector
+CFactory --> CProveedor : instancia proveedor
+CCredenciales --> CProveedor : test_connection()
+CProveedor --> MProveedor : API autenticacion
+
+CCredenciales --> MCredencial : cifra y almacena
+CCredenciales --> MResultado : genera diagnostico
+CCredenciales --> CAuditoria : registra resultado
+CAuditoria --> MAuditoria
+
+MOrganizacion "1" o-- "*" MUsuario
+MOrganizacion "1" o-- "*" MCredencial
+MCredencial "*" --> "1" MProveedor
+MResultado --> MCredencial
+MAuditoria --> MUsuario
+
+@enduml
