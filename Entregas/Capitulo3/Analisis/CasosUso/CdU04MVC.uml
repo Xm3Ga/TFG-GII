@@ -4,57 +4,28 @@ left to right direction
 skinparam packageStyle rectangle
 skinparam classAttributeIconSize 0
 
-class "Usuario externo" as ActorUsuario <<actor>>
+class "Usuario" as Usuario <<actor>>
 
 package "Vista" {
-  class "VistaCatalogoMisiones" as VCatalogo
-  class "VistaMisionAntiJailbreak" as VMisionJailbreak
-  class "VistaResumenGuardarrail" as VResumen
-  class "VistaSeleccionAgentes" as VAgentes
+  class "VistaAntiJailbreak" as Vista
 }
 
 package "Controlador" {
-  class "ControladorMision" as CMision
-  class "ControladorCredenciales" as CCredenciales
-  class "ControladorGuardarrailes" as CGuardarrailes
-  class "GuardrailConnector" as CGuardrail
-  class "ControladorAuditoria" as CAuditoria
+  class "ControladorGuardarrailes" as Controlador
 }
 
 package "Modelo" {
-  class "Usuario" as MUsuario
-  class "Credencial" as MCredencial
-  class "ProveedorCloud" as MProveedor
-  class "Guardarrail" as MGuardarrail
-  class "PoliticaAntiJailbreak" as MPolitica
-  class "AgenteIA" as MAgente
-  class "ResultadoAplicacion" as MResultado
-  class "RegistroDeAuditoria" as MAuditoria
+  class "Guardarrail" as Guardarrail
+  class "AgenteIA" as Agente
 }
 
-ActorUsuario --> VCatalogo : inicia CdU-04
-VCatalogo --> VMisionJailbreak : abre mision
-VMisionJailbreak --> CMision : iniciar proteccion
-CMision --> CCredenciales : validar credencial
-CCredenciales --> MCredencial
-CCredenciales --> CGuardrail : verificar permisos
+class "API proveedor cloud" as ApiProveedor <<externo>>
 
-VMisionJailbreak --> CGuardarrailes : configurar niveles
-CGuardarrailes --> MPolitica : crea politica
-CGuardarrailes --> CGuardrail : create/update guardrail
-CGuardrail --> MProveedor : API guardrails
-CGuardarrailes --> MGuardarrail : persiste identificador
-
-VResumen --> CGuardarrailes : confirma configuracion
-VAgentes --> CGuardarrailes : aplica a agentes
-CGuardarrailes --> MAgente : actualiza proteccion
-CGuardarrailes --> MResultado : resume resultados
-CGuardarrailes --> CAuditoria : registra eventos
-CAuditoria --> MAuditoria
-
-MGuardarrail "1" o-- "1" MPolitica
-MGuardarrail "*" --> "*" MAgente
-MCredencial "*" --> "1" MProveedor
-MAuditoria --> MUsuario
+Usuario --> Vista : configura proteccion
+Vista --> Controlador : solicita guardarrail
+Controlador --> ApiProveedor : crea o actualiza
+Controlador --> Guardarrail : registra configuracion
+Controlador --> Agente : aplica proteccion
+Guardarrail --> Agente : protege
 
 @enduml

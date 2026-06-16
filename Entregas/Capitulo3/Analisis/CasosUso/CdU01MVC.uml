@@ -4,51 +4,28 @@ left to right direction
 skinparam packageStyle rectangle
 skinparam classAttributeIconSize 0
 
-class "Usuario externo" as ActorUsuario <<actor>>
+class "Usuario" as Usuario <<actor>>
 
 package "Vista" {
-  class "VistaCatalogoMisiones" as VCatalogo
-  class "VistaConexionProveedor" as VConexion
-  class "VistaCredenciales" as VCredenciales
+  class "VistaCredenciales" as Vista
 }
 
 package "Controlador" {
-  class "ControladorMision" as CMision
-  class "ControladorCredenciales" as CCredenciales
-  class "ConnectorFactory" as CFactory
-  class "ProveedorCloudConnector" as CProveedor
-  class "ControladorAuditoria" as CAuditoria
+  class "ControladorCredenciales" as Controlador
 }
 
 package "Modelo" {
-  class "Organizacion" as MOrganizacion
-  class "Usuario" as MUsuario
-  class "Credencial" as MCredencial
-  class "ProveedorCloud" as MProveedor
-  class "ResultadoValidacion" as MResultado
-  class "RegistroDeAuditoria" as MAuditoria
+  class "Credencial" as Credencial
+  class "ProveedorCloud" as Proveedor
 }
 
-ActorUsuario --> VCatalogo : inicia CdU-01
-VCatalogo --> VConexion : selecciona proveedor
-VConexion --> VCredenciales : solicita credenciales
-VCredenciales --> CMision : iniciar conexion
-CMision --> CCredenciales : coordina validacion
+class "API proveedor cloud" as ApiProveedor <<externo>>
 
-CCredenciales --> CFactory : crear conector
-CFactory --> CProveedor : instancia proveedor
-CCredenciales --> CProveedor : test_connection()
-CProveedor --> MProveedor : API autenticacion
-
-CCredenciales --> MCredencial : cifra y almacena
-CCredenciales --> MResultado : genera diagnostico
-CCredenciales --> CAuditoria : registra resultado
-CAuditoria --> MAuditoria
-
-MOrganizacion "1" o-- "*" MUsuario
-MOrganizacion "1" o-- "*" MCredencial
-MCredencial "*" --> "1" MProveedor
-MResultado --> MCredencial
-MAuditoria --> MUsuario
+Usuario --> Vista : introduce credenciales
+Vista --> Controlador : solicita conexion
+Controlador --> ApiProveedor : verifica conexion
+Controlador --> Credencial : guarda credencial cifrada
+Credencial --> Proveedor : pertenece a
+ApiProveedor --> Proveedor : representa
 
 @enduml
